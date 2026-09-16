@@ -2,7 +2,7 @@ spring:
   application:
     name: oshi-market
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:oshimarket}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:oshimarket}
     username: ${DB_USERNAME:oshimarket}
     password: ${DB_PASSWORD:oshimarket}
   jpa:

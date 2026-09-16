@@ -17,7 +17,7 @@
 
 - 언어/프레임워크: **Java 17 + Spring Boot 4.0.8**
 - 프론트엔드: **React**
-- DB: **MySQL 8.0**
+- DB: **PostgreSQL 16**
 - 인증: **JWT (Spring Security)**
 - 실시간 통신: **WebSocket + STOMP** (실시간 채팅)
 - 빌드 툴: **Gradle**
