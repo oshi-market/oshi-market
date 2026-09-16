@@ -1,0 +1,19 @@
+# 로컬 개발용 DB. 배포용 docker-compose는 배포 단계에서 별도 작성 예정 (3_아키텍처및서비스흐름.md 참고).
+# 사용법: docker compose up -d  →  Spring Boot 앱은 IDE에서 그대로 실행 (application.yml 기본값이 이 컨테이너를 가리킴)
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: oshimarket-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: oshimarket
+      MYSQL_USER: oshimarket
+      MYSQL_PASSWORD: oshimarket
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

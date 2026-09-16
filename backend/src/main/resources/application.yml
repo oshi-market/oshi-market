@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: oshi-market
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:oshimarket}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USERNAME:oshimarket}
+    password: ${DB_PASSWORD:oshimarket}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+jwt:
+  secret: ${JWT_SECRET:local-dev-only-secret-change-me-please-32bytes+}
+  access-token-expiration-ms: 3600000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized

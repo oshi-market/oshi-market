@@ -1,0 +1,10 @@
+# 저장소 전체 텍스트 파일은 LF로 통일 (Windows/Mac 혼용 팀 - CRLF/LF diff 노이즈 방지)
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.jar binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary

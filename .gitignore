@@ -1,0 +1,23 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# 환경 변수/시크릿
+.env
+.env.local
+.env.*.local
+
+# 프론트엔드 (React 추가 후)
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# 백엔드 빌드 산출물 (backend/.gitignore에도 있지만 안전망으로 중복 기재)
+backend/build/
+backend/.gradle/
