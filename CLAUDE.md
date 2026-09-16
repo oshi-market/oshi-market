@@ -15,7 +15,7 @@
 
 ## 기술 스택
 
-- 언어/프레임워크: **Java 17 + Spring Boot 3.x**
+- 언어/프레임워크: **Java 17 + Spring Boot 4.0.8**
 - 프론트엔드: **React**
 - DB: **MySQL 8.0**
 - 인증: **JWT (Spring Security)**

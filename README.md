@@ -33,7 +33,7 @@ MVP 스코프는 [`1_MVP기획서.md`](./1_MVP기획서.md) 참고.
 
 ## 기술 스택
 
-Java 17 + Spring Boot 3.x · MySQL 8.0 · React · Docker + AWS EC2
+Java 17 + Spring Boot 4.0.8 · MySQL 8.0 · React · Docker + AWS EC2
 
 상세 선정 이유는 [`2_기술스택분석서.md`](./2_기술스택분석서.md) 참고.
 
