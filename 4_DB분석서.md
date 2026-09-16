@@ -41,12 +41,38 @@ ERD([`3_아키텍처및서비스흐름.md`](./3_아키텍처및서비스흐름.m
 
 인덱스: `(category, work_tag, character_tag)` 복합 인덱스(검색/필터가 MVP 핵심 기능이라 우선순위 높음), `seller_id`(내 상품 조회), `status`
 
+**CHATROOM** (MVP 핵심, 담당: yjdev101)
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| id | BIGINT | PK, AUTO_INCREMENT |
+| item_id | BIGINT | NOT NULL, FK → ITEM(id) |
+| buyer_id | BIGINT | NOT NULL, FK → USER(id) |
+| seller_id | BIGINT | NOT NULL, FK → USER(id) |
+| created_at | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP |
+
+제약: `(item_id, buyer_id)` UNIQUE (같은 상품에 같은 구매자가 채팅방을 중복 생성하지 못하도록)
+인덱스: `buyer_id`, `seller_id` (내 채팅방 목록 조회)
+
+**MESSAGE** (MVP 핵심, 담당: yjdev101)
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| id | BIGINT | PK, AUTO_INCREMENT |
+| chat_room_id | BIGINT | NOT NULL, FK → CHATROOM(id) |
+| sender_id | BIGINT | NOT NULL, FK → USER(id) |
+| content | VARCHAR(1000) | NOT NULL |
+| created_at | DATETIME | NOT NULL, DEFAULT CURRENT_TIMESTAMP |
+
+인덱스: `(chat_room_id, created_at)` 복합 인덱스 (채팅방 대화 내역을 시간순 페이지네이션 조회)
+
 **TRANSACTION**
 
 | 컬럼 | 타입 | 제약 |
 |---|---|---|
 | id | BIGINT | PK, AUTO_INCREMENT |
 | item_id | BIGINT | NOT NULL, UNIQUE, FK → ITEM(id) (1:1) |
+| chat_room_id | BIGINT | NOT NULL, UNIQUE, FK → CHATROOM(id) (거래는 반드시 채팅방에서 생성) |
 | buyer_id | BIGINT | NOT NULL, FK → USER(id) |
 | seller_id | BIGINT | NOT NULL, FK → USER(id) |
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'REQUESTED' (REQUESTED, IN_PROGRESS, COMPLETED, CANCELLED) |
