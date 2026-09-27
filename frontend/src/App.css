@@ -21,11 +21,43 @@ nav {
   display: block;
 }
 
+.nav-discover {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.nav-search {
+  flex: 1;
+  max-width: 320px;
+}
+
+.nav-search-input {
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-elevated-2);
+  color: var(--text);
+}
+
+.nav-search-input::placeholder {
+  color: var(--text-faint);
+}
+
+.nav-search-input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+
 .nav-menu {
   display: flex;
   align-items: center;
   gap: 20px;
-  flex: 1;
 }
 
 .nav-menu a {
@@ -49,22 +81,53 @@ nav {
   text-decoration: none;
 }
 
-.user-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--text-muted);
-  padding: 8px 4px;
+.account-menu {
+  position: relative;
 }
 
-.user-chip::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--success);
-  box-shadow: 0 0 0 3px var(--success-soft);
+.account-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  z-index: 20;
+}
+
+.account-menu-greeting {
+  padding: 6px 10px 10px;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.account-menu-dropdown a,
+.account-menu-dropdown button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.account-menu-dropdown a:hover,
+.account-menu-dropdown button:hover {
+  background: var(--bg-elevated-3);
 }
 
 .home {
