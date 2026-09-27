@@ -1,5 +1,6 @@
 import { BrowserRouter, Link, Route, Routes, useNavigate } from 'react-router-dom';
 import './App.css';
+import oshiHeroIcon from './assets/oshi-hero-icon.png';
 import oshiLogo from './assets/oshi-nav-logo.png';
 import { AuthProvider } from './features/member/AuthProvider';
 import LoginPage from './features/member/LoginPage';
@@ -70,6 +71,9 @@ function Home() {
 
   return (
     <div className="home">
+      <div className="hero-spotlight">
+        <img src={oshiHeroIcon} alt="" className="hero-icon" />
+      </div>
       <h1 className="brand-mark">오시마켓</h1>
       <p className="tagline">
         서브컬쳐 굿즈 마니아를 위한 신뢰 기반 중고거래 + 구매처 큐레이션 플랫폼

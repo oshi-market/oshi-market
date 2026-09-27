@@ -76,6 +76,52 @@ nav {
   gap: 20px;
   text-align: center;
   padding: 80px 20px;
+  background:
+    radial-gradient(ellipse 640px 420px at 50% 30%, var(--accent-soft), transparent 70%),
+    var(--bg);
+}
+
+.hero-spotlight {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 4px;
+}
+
+.hero-spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-soft), transparent 70%);
+  filter: blur(4px);
+}
+
+.hero-icon {
+  position: relative;
+  width: 120px;
+  height: auto;
+  filter: drop-shadow(0 12px 28px rgba(255, 61, 104, 0.35));
+  animation: hero-float 4.5s ease-in-out infinite;
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-icon {
+    animation: none;
+  }
 }
 
 .home .brand-mark {
