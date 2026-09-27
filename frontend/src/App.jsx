@@ -5,8 +5,13 @@ import oshiHeroIcon from './assets/oshi-hero-icon.png';
 import oshiLogo from './assets/oshi-nav-logo.png';
 import { AuthProvider } from './features/member/AuthProvider';
 import LoginPage from './features/member/LoginPage';
+import RequireAuth from './features/member/RequireAuth';
 import SignupPage from './features/member/SignupPage';
 import { useAuth } from './features/member/useAuth';
+import ItemDetailPage from './features/item/ItemDetailPage';
+import ItemFormPage from './features/item/ItemFormPage';
+import ItemListPage from './features/item/ItemListPage';
+import MyItemsPage from './features/item/MyItemsPage';
 
 /**
  * 아직 화면이 없는 도메인(상품/큐레이션/채팅/마이페이지) 라우트의 임시 자리표시자.
@@ -164,12 +169,35 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           {/* 각 도메인 라우트는 담당자가 features/* 에 추가 */}
-          <Route path="/items" element={<ComingSoon label="상품 목록" />} />
-          <Route path="/items/new" element={<ComingSoon label="상품 등록" />} />
+          <Route path="/items" element={<ItemListPage />} />
+          <Route
+            path="/items/new"
+            element={
+              <RequireAuth>
+                <ItemFormPage />
+              </RequireAuth>
+            }
+          />
+          <Route path="/items/:itemId" element={<ItemDetailPage />} />
+          <Route
+            path="/items/:itemId/edit"
+            element={
+              <RequireAuth>
+                <ItemFormPage />
+              </RequireAuth>
+            }
+          />
           <Route path="/curations" element={<ComingSoon label="구매 가이드" />} />
           <Route path="/chat" element={<ComingSoon label="채팅" />} />
+          <Route
+            path="/my/items"
+            element={
+              <RequireAuth>
+                <MyItemsPage />
+              </RequireAuth>
+            }
+          />
           <Route path="/my/transactions" element={<ComingSoon label="내 거래" />} />
-          <Route path="/my/items" element={<ComingSoon label="내 상품" />} />
           <Route path="/my/profile" element={<ComingSoon label="프로필" />} />
         </Routes>
       </BrowserRouter>
