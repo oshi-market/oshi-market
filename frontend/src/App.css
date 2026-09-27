@@ -125,10 +125,11 @@ nav {
 }
 
 .home .brand-mark {
+  font-family: 'Dela Gothic One', var(--sans);
   font-size: 48px;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: -1.2px;
-  color: var(--accent);
+  color: #ffffff;
 }
 
 .home .tagline {

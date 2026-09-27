@@ -74,7 +74,7 @@ function Home() {
       <div className="hero-spotlight">
         <img src={oshiHeroIcon} alt="" className="hero-icon" />
       </div>
-      <h1 className="brand-mark">오시마켓</h1>
+      <h1 className="brand-mark">推しマーケット</h1>
       <p className="tagline">
         서브컬쳐 굿즈 마니아를 위한 신뢰 기반 중고거래 + 구매처 큐레이션 플랫폼
       </p>
