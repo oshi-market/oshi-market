@@ -5,6 +5,7 @@ import com.oshimarket.global.security.JwtAuthenticationFilter;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -49,6 +50,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        // 상품 목록/검색/상세 조회는 비로그인 사용자도 가능 (1_MVP기획서.md 서비스 흐름:
+                        // 둘러보기는 누구나, 등록/수정/삭제 등 실제 액션부터 로그인 필요)
+                        .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
