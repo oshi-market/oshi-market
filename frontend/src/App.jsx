@@ -7,6 +7,8 @@ import { AuthProvider } from './features/member/AuthProvider';
 import LoginPage from './features/member/LoginPage';
 import SignupPage from './features/member/SignupPage';
 import { useAuth } from './features/member/useAuth';
+import CurationDetailPage from './features/curation/CurationDetailPage';
+import CurationListPage from './features/curation/CurationListPage';
 
 /**
  * 아직 화면이 없는 도메인(상품/큐레이션/채팅/마이페이지) 라우트의 임시 자리표시자.
@@ -166,7 +168,8 @@ function App() {
           {/* 각 도메인 라우트는 담당자가 features/* 에 추가 */}
           <Route path="/items" element={<ComingSoon label="상품 목록" />} />
           <Route path="/items/new" element={<ComingSoon label="상품 등록" />} />
-          <Route path="/curations" element={<ComingSoon label="구매 가이드" />} />
+          <Route path="/curations" element={<CurationListPage />} />
+          <Route path="/curations/:curationId" element={<CurationDetailPage />} />
           <Route path="/chat" element={<ComingSoon label="채팅" />} />
           <Route path="/my/transactions" element={<ComingSoon label="내 거래" />} />
           <Route path="/my/items" element={<ComingSoon label="내 상품" />} />

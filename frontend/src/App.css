@@ -255,3 +255,79 @@ nav {
   padding: 80px 20px;
   color: var(--text-muted);
 }
+
+.muted {
+  color: var(--text-muted);
+}
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.curation-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.curation-filter .input {
+  width: 180px;
+}
+
+.curation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.curation-card {
+  display: block;
+  padding: 16px 18px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.curation-card:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+}
+
+.curation-card-store {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.curation-detail-card {
+  max-width: 480px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.curation-detail-card .btn {
+  align-self: flex-start;
+  margin-top: 8px;
+  text-decoration: none;
+}
