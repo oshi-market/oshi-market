@@ -31,42 +31,46 @@ function LoginPage() {
 
   return (
     <div className="auth-page">
-      <h2>로그인</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          이메일
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            autoComplete="email"
-            required
-          />
-        </label>
-        <label>
-          비밀번호
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            autoComplete="current-password"
-            required
-          />
-        </label>
-        {error && (
-          <p className="form-error" role="alert">
-            {error}
-          </p>
-        )}
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? '로그인 중...' : '로그인'}
-        </button>
-      </form>
-      <p>
-        계정이 없으신가요? <Link to="/signup">회원가입</Link>
-      </p>
+      <div className="card">
+        <h2>로그인</h2>
+        <form onSubmit={handleSubmit}>
+          <label className="field">
+            이메일
+            <input
+              className="input"
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="email"
+              required
+            />
+          </label>
+          <label className="field">
+            비밀번호
+            <input
+              className="input"
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              autoComplete="current-password"
+              required
+            />
+          </label>
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
+          <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+            {isSubmitting ? '로그인 중...' : '로그인'}
+          </button>
+        </form>
+        <p className="switch-link">
+          계정이 없으신가요? <Link to="/signup">회원가입</Link>
+        </p>
+      </div>
     </div>
   );
 }
