@@ -24,8 +24,8 @@ public final class ItemSpecifications {
     public static Specification<Item> from(ItemSearchCondition condition) {
         return Specification.allOf(
                 hasCategory(condition.category()),
-                hasWorkTag(condition.workTag()),
-                hasCharacterTag(condition.characterTag()),
+                hasWorkTag(condition.work()),
+                hasCharacterTag(condition.character()),
                 hasStatus(condition.status()),
                 hasSellerId(condition.sellerId()),
                 titleContains(condition.keyword())

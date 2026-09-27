@@ -46,7 +46,7 @@ public class ItemController {
         return ResponseEntity.status(HttpStatus.CREATED).body(itemService.register(memberId, request));
     }
 
-    /** 필터: category, workTag, characterTag, status / 내 상품 목록 조회는 sellerId=내 memberId로 전달. */
+    /** 필터: category, work, character, status / 내 상품 목록 조회는 sellerId=내 memberId로 전달. */
     @GetMapping
     public Page<ItemResponse> search(
             @ModelAttribute ItemSearchCondition condition,
