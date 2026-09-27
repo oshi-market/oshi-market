@@ -4,28 +4,48 @@ nav {
   z-index: 10;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 24px;
+  gap: 28px;
+  padding: 10px 24px;
   background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
 }
 
 .brand {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
-  color: var(--accent);
+  display: inline-flex;
+  align-items: center;
+}
+
+.brand-logo {
+  height: 28px;
+  width: auto;
+  display: block;
+}
+
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+}
+
+.nav-menu a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
   text-decoration: none;
 }
 
-.nav-links {
+.nav-menu a:hover {
+  color: var(--text);
+}
+
+.nav-actions {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.nav-links a {
+.nav-actions a {
   text-decoration: none;
 }
 
@@ -115,4 +135,13 @@ nav {
   color: var(--accent);
   font-weight: 600;
   text-decoration: none;
+}
+
+.coming-soon {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--text-muted);
 }
