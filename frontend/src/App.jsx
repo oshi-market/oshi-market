@@ -5,6 +5,8 @@ import oshiHeroIcon from './assets/oshi-hero-icon.png';
 import oshiLogo from './assets/oshi-nav-logo.png';
 import { AuthProvider } from './features/member/AuthProvider';
 import LoginPage from './features/member/LoginPage';
+import ProfilePage from './features/member/ProfilePage';
+import RequireAuth from './features/member/RequireAuth';
 import SignupPage from './features/member/SignupPage';
 import { useAuth } from './features/member/useAuth';
 
@@ -170,7 +172,14 @@ function App() {
           <Route path="/chat" element={<ComingSoon label="채팅" />} />
           <Route path="/my/transactions" element={<ComingSoon label="내 거래" />} />
           <Route path="/my/items" element={<ComingSoon label="내 상품" />} />
-          <Route path="/my/profile" element={<ComingSoon label="프로필" />} />
+          <Route
+            path="/my/profile"
+            element={
+              <RequireAuth>
+                <ProfilePage />
+              </RequireAuth>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

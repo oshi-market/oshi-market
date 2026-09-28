@@ -255,3 +255,67 @@ nav {
   padding: 80px 20px;
   color: var(--text-muted);
 }
+
+.muted {
+  color: var(--text-muted);
+}
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.profile-page {
+  display: flex;
+  justify-content: center;
+}
+
+.profile-page .card {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  text-align: left;
+}
+
+.profile-page form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.profile-readonly {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-readonly .field p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.form-success {
+  margin: 0;
+  font-size: 13px;
+  color: var(--success);
+  background: var(--success-soft);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+}

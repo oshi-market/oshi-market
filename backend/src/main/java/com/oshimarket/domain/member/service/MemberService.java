@@ -2,6 +2,7 @@ package com.oshimarket.domain.member.service;
 
 import com.oshimarket.domain.member.dto.LoginRequest;
 import com.oshimarket.domain.member.dto.MemberResponse;
+import com.oshimarket.domain.member.dto.MemberUpdateRequest;
 import com.oshimarket.domain.member.dto.SignupRequest;
 import com.oshimarket.domain.member.dto.TokenResponse;
 import com.oshimarket.domain.member.entity.Member;
@@ -65,6 +66,20 @@ public class MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
+        return MemberResponse.from(member);
+    }
+
+    @Transactional
+    public MemberResponse updateProfile(Long memberId, MemberUpdateRequest request) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        boolean nicknameChanged = !member.getNickname().equals(request.nickname());
+        if (nicknameChanged && memberRepository.existsByNickname(request.nickname())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+
+        member.updateNickname(request.nickname());
         return MemberResponse.from(member);
     }
 }

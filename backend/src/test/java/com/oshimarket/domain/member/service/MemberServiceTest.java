@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.oshimarket.domain.member.dto.LoginRequest;
 import com.oshimarket.domain.member.dto.MemberResponse;
+import com.oshimarket.domain.member.dto.MemberUpdateRequest;
 import com.oshimarket.domain.member.dto.SignupRequest;
 import com.oshimarket.domain.member.dto.TokenResponse;
 import com.oshimarket.domain.member.entity.Member;
@@ -138,6 +139,50 @@ class MemberServiceTest {
         when(memberRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> memberService.getMe(999L))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.MEMBER_NOT_FOUND);
+    }
+
+    @Test
+    void updateProfile_존재하는_회원이면_닉네임이_변경된다() {
+        Member member = withId(Member.of("test@example.com", "encoded-password", "기존닉네임"), 1L);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(memberRepository.existsByNickname("새닉네임")).thenReturn(false);
+
+        MemberResponse response = memberService.updateProfile(1L, new MemberUpdateRequest("새닉네임"));
+
+        assertThat(response.nickname()).isEqualTo("새닉네임");
+    }
+
+    @Test
+    void updateProfile_닉네임을_바꾸지_않으면_중복_체크를_하지_않는다() {
+        Member member = withId(Member.of("test@example.com", "encoded-password", "닉네임"), 1L);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+
+        MemberResponse response = memberService.updateProfile(1L, new MemberUpdateRequest("닉네임"));
+
+        assertThat(response.nickname()).isEqualTo("닉네임");
+        verify(memberRepository, never()).existsByNickname(anyString());
+    }
+
+    @Test
+    void updateProfile_다른_사람이_쓰는_닉네임이면_예외가_발생한다() {
+        Member member = withId(Member.of("test@example.com", "encoded-password", "기존닉네임"), 1L);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        when(memberRepository.existsByNickname("중복닉네임")).thenReturn(true);
+
+        assertThatThrownBy(() -> memberService.updateProfile(1L, new MemberUpdateRequest("중복닉네임")))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.DUPLICATE_NICKNAME);
+    }
+
+    @Test
+    void updateProfile_존재하지_않는_회원이면_예외가_발생한다() {
+        when(memberRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> memberService.updateProfile(999L, new MemberUpdateRequest("닉네임")))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
                 .isEqualTo(ErrorCode.MEMBER_NOT_FOUND);
