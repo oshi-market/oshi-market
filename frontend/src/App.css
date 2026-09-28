@@ -452,3 +452,262 @@ textarea.input {
   font-family: inherit;
   resize: vertical;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-icon {
+    animation: none;
+  }
+}
+
+.home .brand-mark {
+  font-family: 'Dela Gothic One', var(--sans);
+  font-size: 48px;
+  font-weight: 400;
+  letter-spacing: -1.2px;
+  color: #ffffff;
+}
+
+.home .tagline {
+  max-width: 480px;
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.home .cta-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.home-items {
+  width: 100%;
+  max-width: 1080px;
+  margin-top: 56px;
+  text-align: left;
+}
+
+.home-items-heading {
+  margin-bottom: 16px;
+  font-size: 20px;
+}
+
+/* 데스크탑 4열 / 태블릿 2열 / 모바일 1열 */
+.home-item-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 1023px) {
+  .home-item-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .home-item-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.home-item-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.home-item-card:hover,
+.home-item-card:focus-visible {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.home-item-thumb {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: var(--bg-elevated-2);
+}
+
+.home-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.home-item-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  backdrop-filter: blur(6px);
+}
+
+.home-item-badge-selling {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.home-item-badge-in_transaction {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.home-item-badge-sold_out {
+  background: rgba(15, 14, 22, 0.7);
+  color: var(--text-faint);
+}
+
+.home-item-body {
+  padding: 12px 14px 16px;
+}
+
+.home-item-title {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 15px;
+}
+
+.home-item-price {
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-item-card {
+    transition: none;
+  }
+
+  .home-item-card:hover,
+  .home-item-card:focus-visible {
+    transform: none;
+  }
+}
+
+.auth-page {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.auth-page .card {
+  width: 100%;
+  max-width: 360px;
+  padding: 32px;
+  text-align: left;
+}
+
+.auth-page form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.auth-page .btn-primary {
+  width: 100%;
+  padding: 12px 18px;
+}
+
+.auth-page .switch-link {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.auth-page .switch-link a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.coming-soon {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--text-muted);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.profile-page {
+  display: flex;
+  justify-content: center;
+}
+
+.profile-page .card {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  text-align: left;
+}
+
+.profile-page form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.profile-readonly {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-readonly .field p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.form-success {
+  margin: 0;
+  font-size: 13px;
+  color: var(--success);
+  background: var(--success-soft);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+}

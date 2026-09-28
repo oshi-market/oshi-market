@@ -3,15 +3,17 @@ import { BrowserRouter, Link, Route, Routes, useNavigate } from 'react-router-do
 import './App.css';
 import oshiHeroIcon from './assets/oshi-hero-icon.png';
 import oshiLogo from './assets/oshi-nav-logo.png';
-import { AuthProvider } from './features/member/AuthProvider';
-import LoginPage from './features/member/LoginPage';
-import RequireAuth from './features/member/RequireAuth';
-import SignupPage from './features/member/SignupPage';
-import { useAuth } from './features/member/useAuth';
+import HomeItemGrid from './features/item/HomeItemGrid';
 import ItemDetailPage from './features/item/ItemDetailPage';
 import ItemFormPage from './features/item/ItemFormPage';
 import ItemListPage from './features/item/ItemListPage';
 import MyItemsPage from './features/item/MyItemsPage';
+import { AuthProvider } from './features/member/AuthProvider';
+import LoginPage from './features/member/LoginPage';
+import ProfilePage from './features/member/ProfilePage';
+import RequireAuth from './features/member/RequireAuth';
+import SignupPage from './features/member/SignupPage';
+import { useAuth } from './features/member/useAuth';
 
 /**
  * 아직 화면이 없는 도메인(상품/큐레이션/채팅/마이페이지) 라우트의 임시 자리표시자.
@@ -155,6 +157,7 @@ function Home() {
         </div>
       )}
       {isAuthenticated && <p className="tagline">반갑습니다, {member?.nickname}님 👋</p>}
+      <HomeItemGrid />
     </div>
   );
 }
@@ -198,7 +201,14 @@ function App() {
             }
           />
           <Route path="/my/transactions" element={<ComingSoon label="내 거래" />} />
-          <Route path="/my/profile" element={<ComingSoon label="프로필" />} />
+          <Route
+            path="/my/profile"
+            element={
+              <RequireAuth>
+                <ProfilePage />
+              </RequireAuth>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -11,3 +11,7 @@ export function login({ email, password }) {
 export function fetchMe() {
   return client.get('/members/me');
 }
+
+export function updateMe({ nickname }) {
+  return client.patch('/members/me', { nickname });
+}
