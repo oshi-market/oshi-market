@@ -207,6 +207,278 @@ nav {
   margin-top: 8px;
 }
 
+.auth-page {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.auth-page .card {
+  width: 100%;
+  max-width: 360px;
+  padding: 32px;
+  text-align: left;
+}
+
+.auth-page form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.auth-page .btn-primary {
+  width: 100%;
+  padding: 12px 18px;
+}
+
+.auth-page .switch-link {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.auth-page .switch-link a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.coming-soon {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--text-muted);
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.badge-outline {
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+}
+
+.badge-status-selling {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.badge-status-in_transaction {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.badge-status-sold_out {
+  background: var(--bg-elevated-3);
+  color: var(--text-faint);
+}
+
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.item-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.item-card:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+}
+
+.item-card-thumb {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  background: var(--bg-elevated-2);
+}
+
+.item-card-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.item-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-card-price {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.item-card-meta {
+  display: flex;
+  gap: 6px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.item-detail-page {
+  display: flex;
+  gap: 32px;
+}
+
+.item-detail-thumb {
+  width: 320px;
+  flex-shrink: 0;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 72px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.item-detail-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-detail-meta {
+  display: flex;
+  gap: 6px;
+}
+
+.item-detail-price {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.item-detail-description {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.item-detail-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .item-detail-page {
+    flex-direction: column;
+  }
+
+  .item-detail-thumb {
+    width: 100%;
+  }
+}
+
+.item-form-page {
+  display: flex;
+  justify-content: center;
+}
+
+.item-form-page .card {
+  width: 100%;
+  max-width: 480px;
+  padding: 32px;
+  text-align: left;
+}
+
+.item-form-page form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+textarea.input {
+  font-family: inherit;
+  resize: vertical;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-icon {
+    animation: none;
+  }
+}
+
+.home .brand-mark {
+  font-family: 'Dela Gothic One', var(--sans);
+  font-size: 48px;
+  font-weight: 400;
+  letter-spacing: -1.2px;
+  color: #ffffff;
+}
+
+.home .tagline {
+  max-width: 480px;
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.home .cta-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
 .home-items {
   width: 100%;
   max-width: 1080px;
