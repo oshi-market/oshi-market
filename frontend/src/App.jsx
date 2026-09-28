@@ -3,6 +3,7 @@ import { BrowserRouter, Link, Route, Routes, useNavigate } from 'react-router-do
 import './App.css';
 import oshiHeroIcon from './assets/oshi-hero-icon.png';
 import oshiLogo from './assets/oshi-nav-logo.png';
+import HomeItemGrid from './features/item/HomeItemGrid';
 import { AuthProvider } from './features/member/AuthProvider';
 import LoginPage from './features/member/LoginPage';
 import ProfilePage from './features/member/ProfilePage';
@@ -152,6 +153,7 @@ function Home() {
         </div>
       )}
       {isAuthenticated && <p className="tagline">반갑습니다, {member?.nickname}님 👋</p>}
+      <HomeItemGrid />
     </div>
   );
 }
@@ -168,6 +170,7 @@ function App() {
           {/* 각 도메인 라우트는 담당자가 features/* 에 추가 */}
           <Route path="/items" element={<ComingSoon label="상품 목록" />} />
           <Route path="/items/new" element={<ComingSoon label="상품 등록" />} />
+          <Route path="/items/:itemId" element={<ComingSoon label="상품 상세" />} />
           <Route path="/curations" element={<ComingSoon label="구매 가이드" />} />
           <Route path="/chat" element={<ComingSoon label="채팅" />} />
           <Route path="/my/transactions" element={<ComingSoon label="내 거래" />} />
