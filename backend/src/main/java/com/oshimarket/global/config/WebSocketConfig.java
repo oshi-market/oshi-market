@@ -1,6 +1,6 @@
 package com.oshimarket.global.config;
 
-import com.oshimarket.global.security.JwtProvider;
+import com.oshimarket.global.security.JwtTokenProvider;
 import io.jsonwebtoken.JwtException;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -19,10 +19,10 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private final JwtProvider jwtProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public WebSocketConfig(JwtProvider jwtProvider) {
-        this.jwtProvider = jwtProvider;
+    public WebSocketConfig(JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
     @Override
@@ -38,10 +38,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(new JwtHandshakeInterceptor(jwtProvider));
+        registration.interceptors(new JwtHandshakeInterceptor(jwtTokenProvider));
     }
 
-    private record JwtHandshakeInterceptor(JwtProvider jwtProvider) implements ChannelInterceptor {
+    private record JwtHandshakeInterceptor(JwtTokenProvider jwtTokenProvider) implements ChannelInterceptor {
 
         @Override
         public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -53,7 +53,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                     throw new JwtException("Authorization 헤더가 없습니다.");
                 }
-                Long userId = jwtProvider.extractUserId(authHeader.substring(7));
+                String token = authHeader.substring(7);
+                if (!jwtTokenProvider.validateToken(token)) {
+                    throw new JwtException("유효하지 않은 토큰입니다.");
+                }
+                Long userId = jwtTokenProvider.getMemberId(token);
                 accessor.getSessionAttributes().put("userId", userId);
             }
             return message;
