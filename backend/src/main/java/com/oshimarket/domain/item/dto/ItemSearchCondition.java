@@ -1,5 +1,6 @@
 package com.oshimarket.domain.item.dto;
 
+import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemStatus;
 
 /**
@@ -8,7 +9,7 @@ import com.oshimarket.domain.item.entity.ItemStatus;
  * 그대로 따른다 (내부 엔티티 필드명 workTag/characterTag와는 의도적으로 다름 — API 계약은 문서 기준).
  */
 public record ItemSearchCondition(
-        String category,
+        ItemCategory category,
         String work,
         String character,
         ItemStatus status,

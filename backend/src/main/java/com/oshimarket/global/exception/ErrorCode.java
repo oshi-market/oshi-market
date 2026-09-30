@@ -16,6 +16,7 @@ public enum ErrorCode {
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "입력값이 올바르지 않습니다."),
     ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
     ITEM_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 등록한 상품만 수정/삭제할 수 있습니다."),
+    WORK_NOT_FOUND(HttpStatus.BAD_REQUEST, "등록되지 않은 작품입니다. 목록에서 선택해주세요."),
     CURATION_NOT_FOUND(HttpStatus.NOT_FOUND, "큐레이션 정보를 찾을 수 없습니다.");
 
     private final HttpStatus status;

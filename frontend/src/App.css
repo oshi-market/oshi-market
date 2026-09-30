@@ -833,3 +833,48 @@ textarea.input {
   background: var(--bg-elevated-3);
   color: var(--text-faint);
 }
+
+/* 작품명 검색형 드롭다운 (features/item/WorkCombobox.jsx) */
+.combobox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.combobox-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 6px;
+  right: 6px;
+  z-index: 20;
+  max-height: 280px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--bg-elevated-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.combobox-option,
+.combobox-empty {
+  padding: 10px 12px;
+  font-size: 15px;
+  border-radius: var(--radius-sm);
+}
+
+.combobox-option {
+  color: var(--text);
+  cursor: pointer;
+}
+
+.combobox-option.is-active {
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+}
+
+.combobox-empty {
+  color: var(--text-faint);
+}

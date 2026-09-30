@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
 import { useAuth } from '../member/useAuth';
 import { deleteItem, fetchItem } from './api';
-import { CONDITION_LABEL, STATUS_LABEL } from './constants';
+import { CATEGORY_LABEL, CONDITION_LABEL, STATUS_LABEL } from './constants';
 
 function ItemDetailPage() {
   const { itemId } = useParams();
@@ -83,7 +83,7 @@ function ItemDetailPage() {
         <h2>{item.title}</h2>
         <p className="item-detail-price">{item.price.toLocaleString()}원</p>
         <p className="muted">
-          {item.category}
+          {CATEGORY_LABEL[item.category] ?? item.category}
           {item.workTag && ` · ${item.workTag}`}
           {item.characterTag && ` · ${item.characterTag}`}
         </p>

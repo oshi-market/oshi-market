@@ -19,3 +19,8 @@ export function updateItem(itemId, data) {
 export function deleteItem(itemId) {
   return client.delete(`/items/${itemId}`);
 }
+
+/** 작품 마스터 목록 (작품명 드롭다운용). */
+export function fetchWorks() {
+  return client.get('/works');
+}

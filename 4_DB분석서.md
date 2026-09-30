@@ -34,8 +34,8 @@ DB는 원래 MySQL로 확정했었으나, 팀이 MySQL은 충분히 다뤄봤으
 | seller_id | BIGINT | NOT NULL, FK → USER_ACCOUNT(id) |
 | title | VARCHAR(100) | NOT NULL |
 | description | TEXT | |
-| category | VARCHAR(50) | NOT NULL |
-| work_tag | VARCHAR(50) | |
+| category | VARCHAR(50) | NOT NULL (ENUM: FIGURE, ACRYLIC, KEYRING, CAN_BADGE, PLUSH, PHOTO_CARD, TRADING_CARD, POSTER, FABRIC, MEDIA, ETC) |
+| work_tag | VARCHAR(50) | 값이 있으면 WORK.name 중 하나 (애플리케이션에서 검증) |
 | character_tag | VARCHAR(50) | |
 | price | INT | NOT NULL |
 | condition | VARCHAR(20) | NOT NULL (ENUM: NEW, USED) |
@@ -90,6 +90,20 @@ Elasticsearch 도입 전까지는 이 인덱스 + PostgreSQL 내장 풀텍스트
 
 **item_id/chat_room_id는 UNIQUE가 아님(의도적)**: 거래가 취소(CANCELLED)된 뒤에는 같은 상품·같은 채팅방에서 새 거래를 다시 생성할 수 있어야 함. DB가 막아야 할 건 "이 상품에 평생 거래 1건"이 아니라 "이 상품에 **동시에 진행 중인** 거래가 2건 이상 생기는 것"이며, 이건 아래 동시성 제어(비관적 락 + `item.status` 체크)로 이미 처리됨. UNIQUE로 걸면 정상적인 재요청 시나리오까지 막혀버림. (2026-09-16 외부 피드백으로 수정)
 
+**WORK** (작품 마스터, V2 추가)
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| id | BIGSERIAL | PK |
+| name | VARCHAR(50) | NOT NULL, UNIQUE |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP |
+
+상품 등록 시 작품명 드롭다운 목록 + 입력값 검증용. 자유 입력이면 "나루토"/"NARUTO"처럼 표기가 갈려서 상품 검색·큐레이션의 작품 필터가 안 걸리는 문제를 막기 위해 도입. 작품은 계속 늘어나므로 enum이 아닌 테이블로 관리하고, 추가는 코드 수정 없이 INSERT.
+
+**`item.work_tag`/`curation.work_tag`를 `work_id` FK로 바꾸지 않은 이유(의도적)**: MVP 단계에서 기존 테이블·큐레이션 코드·필터 API(`work=작품명`)를 건드리지 않고 표기 통일 효과만 얻기 위함. 작품 이름 변경/별칭 관리가 필요해지면 FK 전환 검토.
+
+반면 **category**는 종류가 적고 거의 바뀌지 않아 테이블 없이 `ItemCategory` enum으로 관리 (V2에서 기존 자유 입력값을 enum 코드로 변환).
+
 **CURATION**
 
 | 컬럼 | 타입 | 제약 |
@@ -141,7 +155,7 @@ Elasticsearch 도입 전까지는 이 인덱스 + PostgreSQL 내장 풀텍스트
 
 ## 4. 마이그레이션 관리
 
-**Flyway** 채택 — SQL 파일(`V1__init.sql`, `V2__add_review.sql` ...) 기반이라 팀이 이미 아는 SQL 문법 그대로 사용 가능하고, Spring Boot가 기본 지원. PostgreSQL은 Flyway 코어가 기본 지원해 별도 모듈이 필요 없음. (대안 Liquibase는 XML/YAML 기반이라 학습 비용이 더 듦)
+**Flyway** 채택 — SQL 파일(`V1__init.sql`, `V2__work_master_and_item_category.sql` ...) 기반이라 팀이 이미 아는 SQL 문법 그대로 사용 가능하고, Spring Boot가 기본 지원. PostgreSQL은 Flyway 코어가 기본 지원해 별도 모듈이 필요 없음. (대안 Liquibase는 XML/YAML 기반이라 학습 비용이 더 듦)
 
 ## 5. 커넥션 풀
 
