@@ -44,6 +44,8 @@ DB는 원래 MySQL로 확정했었으나, 팀이 MySQL은 충분히 다뤄봤으
 
 인덱스: `(category, work_tag, character_tag)` 복합 인덱스(검색/필터가 MVP 핵심 기능이라 우선순위 높음), `seller_id`(내 상품 조회), `status`
 
+**상품 삭제 정책**: `chat_room`/`transaction`이 `item`을 FK로 참조하고(CASCADE 없음), 거래 기록도 보존해야 하므로 채팅방이나 거래가 하나라도 있는 상품은 삭제를 막는다 (409 `ITEM_HAS_CHAT_OR_TRANSACTION`, `ItemService#delete`에서 사전 확인). 그 밖의 FK 위반은 공통 예외 처리에서 500 대신 409 `DATA_CONFLICT`로 응답. 찜(`wishlist`) 구현 시에는 찜한 상품이 삭제되면 찜도 함께 지워지도록 `ON DELETE CASCADE` 전환 필요.
+
 Elasticsearch 도입 전까지는 이 인덱스 + PostgreSQL 내장 풀텍스트 검색(`tsvector`)으로 검색을 처리 ([`2_기술스택분석서.md`](./2_기술스택분석서.md) 향후 확장 계획 참고).
 
 **CHATROOM** (MVP 핵심, 담당: yjdev101)

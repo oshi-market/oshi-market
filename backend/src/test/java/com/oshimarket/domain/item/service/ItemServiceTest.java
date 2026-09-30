@@ -182,6 +182,21 @@ class ItemServiceTest {
     }
 
     @Test
+    void delete_채팅이나_거래가_있으면_삭제하지_않고_예외가_발생한다() {
+        Item item = withId(sampleItem(), 1L);
+        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(itemRepository.hasChatOrTransaction(1L)).thenReturn(true);
+
+        assertThatThrownBy(() -> itemService.delete(1L, SELLER_ID))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ITEM_HAS_CHAT_OR_TRANSACTION);
+
+        verify(itemRepository, never()).delete(any(Item.class));
+        verify(itemImageService, never()).deleteStoredFiles(any());
+    }
+
+    @Test
     void delete_상품을_지운_뒤_저장소의_사진_파일도_정리한다() {
         Item item = withId(sampleItem(), 1L);
         List<ItemImage> images = List.of(ItemImage.of(1L, "https://img/1.jpg", "items/1", 0));
