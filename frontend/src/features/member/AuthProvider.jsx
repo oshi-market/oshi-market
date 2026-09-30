@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchMe, login as loginApi, signup as signupApi } from './api';
+import { fetchMe, login as loginApi, signup as signupApi, updateMe as updateMeApi } from './api';
 import { AuthContext } from './authContext';
 
 const TOKEN_KEY = 'accessToken';
@@ -55,6 +55,13 @@ export function AuthProvider({ children }) {
     setMember(null);
   }
 
+  /** 프로필 수정 후 전역 상태(member)를 갱신 — nav 인사말 등도 자동으로 같이 바뀐다. */
+  async function updateProfile(form) {
+    const { data } = await updateMeApi(form);
+    setMember(data);
+    return data;
+  }
+
   const value = {
     member,
     isAuthenticated: Boolean(accessToken),
@@ -62,6 +69,7 @@ export function AuthProvider({ children }) {
     login,
     signup,
     logout,
+    updateProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

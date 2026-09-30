@@ -53,4 +53,9 @@ public class Member {
     public static Member of(String email, String encodedPassword, String nickname) {
         return new Member(email, encodedPassword, nickname);
     }
+
+    /** 프로필 수정(MVP 범위: 닉네임만) — 1_MVP기획서.md "최소 필드만 구현". */
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
 }
