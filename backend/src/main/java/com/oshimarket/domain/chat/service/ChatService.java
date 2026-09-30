@@ -9,6 +9,11 @@ import com.oshimarket.domain.chat.repository.MessageRepository;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import com.oshimarket.global.exception.BusinessException;
+import com.oshimarket.global.exception.ErrorCode;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,5 +49,18 @@ public class ChatService {
         return chatRooms.stream()
                 .map(ChatRoomResponse::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ChatMessageResponse> getMessages(Long chatRoomId, Long memberId, Pageable pageable) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.CHAT_ROOM_NOT_FOUND));
+
+        if (!memberId.equals(chatRoom.getBuyerId()) && !memberId.equals(chatRoom.getSellerId())) {
+            throw new BusinessException(ErrorCode.CHAT_ROOM_FORBIDDEN);
+        }
+
+        return messageRepository.findByChatRoomId(chatRoom.getId(), pageable)
+                .map(ChatMessageResponse::from);
     }
 }
