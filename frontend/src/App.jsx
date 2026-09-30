@@ -16,6 +16,7 @@ import ProfilePage from './features/member/ProfilePage';
 import RequireAuth from './features/member/RequireAuth';
 import SignupPage from './features/member/SignupPage';
 import { useAuth } from './features/member/useAuth';
+import MyTransactionsPage from './features/transaction/MyTransactionsPage';
 
 /**
  * 아직 화면이 없는 도메인(상품/큐레이션/채팅/마이페이지) 라우트의 임시 자리표시자.
@@ -203,7 +204,14 @@ function App() {
               </RequireAuth>
             }
           />
-          <Route path="/my/transactions" element={<ComingSoon label="내 거래" />} />
+          <Route
+            path="/my/transactions"
+            element={
+              <RequireAuth>
+                <MyTransactionsPage />
+              </RequireAuth>
+            }
+          />
           <Route
             path="/my/profile"
             element={
