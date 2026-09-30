@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.oshimarket.domain.item.entity.Item;
+import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemCondition;
 import com.oshimarket.domain.item.repository.ItemRepository;
 import com.oshimarket.domain.transaction.dto.TransactionHistoryResponse;
@@ -105,7 +106,7 @@ class TransactionHistoryServiceTest {
     }
 
     private static Item sampleItem(Long sellerId, String title, int price) {
-        return Item.register(sellerId, title, "설명", "피규어", "작품", "캐릭터", price, ItemCondition.NEW);
+        return Item.register(sellerId, title, "설명", ItemCategory.FIGURE, "작품", "캐릭터", price, ItemCondition.NEW);
     }
 
     /** BIGSERIAL로 생성되는 id는 리플렉션으로 채워서 저장 이후 상태를 흉내낸다 (DB 없이 단위 테스트). */

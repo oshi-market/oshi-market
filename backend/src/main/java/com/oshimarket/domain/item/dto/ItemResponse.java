@@ -1,6 +1,7 @@
 package com.oshimarket.domain.item.dto;
 
 import com.oshimarket.domain.item.entity.Item;
+import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemCondition;
 import com.oshimarket.domain.item.entity.ItemStatus;
 import java.time.LocalDateTime;
@@ -10,7 +11,7 @@ public record ItemResponse(
         Long sellerId,
         String title,
         String description,
-        String category,
+        ItemCategory category,
         String workTag,
         String characterTag,
         int price,

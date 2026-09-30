@@ -22,7 +22,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .findFirst()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                // 타입 변환 실패(예: GET /api/items?category=FOO)는 기본 메시지에 내부 클래스명이 노출돼서 대체
+                .map(error -> error.getField() + ": "
+                        + (error.isBindingFailure() ? "올바르지 않은 값입니다." : error.getDefaultMessage()))
                 .orElse(ErrorCode.INVALID_INPUT.getMessage());
 
         return ResponseEntity.status(ErrorCode.INVALID_INPUT.getStatus())

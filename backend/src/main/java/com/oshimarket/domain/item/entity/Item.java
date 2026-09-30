@@ -37,8 +37,9 @@ public class Item {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private String category;
+    private ItemCategory category;
 
     @Column(name = "work_tag", length = 50)
     private String workTag;
@@ -65,7 +66,7 @@ public class Item {
             Long sellerId,
             String title,
             String description,
-            String category,
+            ItemCategory category,
             String workTag,
             String characterTag,
             int price,
@@ -86,7 +87,7 @@ public class Item {
             Long sellerId,
             String title,
             String description,
-            String category,
+            ItemCategory category,
             String workTag,
             String characterTag,
             int price,
@@ -98,7 +99,7 @@ public class Item {
     public void update(
             String title,
             String description,
-            String category,
+            ItemCategory category,
             String workTag,
             String characterTag,
             int price,

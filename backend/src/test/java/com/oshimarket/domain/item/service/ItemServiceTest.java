@@ -13,8 +13,10 @@ import com.oshimarket.domain.item.dto.ItemResponse;
 import com.oshimarket.domain.item.dto.ItemSearchCondition;
 import com.oshimarket.domain.item.dto.ItemUpdateRequest;
 import com.oshimarket.domain.item.entity.Item;
+import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemCondition;
 import com.oshimarket.domain.item.repository.ItemRepository;
+import com.oshimarket.domain.work.repository.WorkRepository;
 import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
 import java.lang.reflect.Field;
@@ -33,18 +35,21 @@ class ItemServiceTest {
     private static final Long OTHER_MEMBER_ID = 2L;
 
     private ItemRepository itemRepository;
+    private WorkRepository workRepository;
     private ItemService itemService;
 
     @BeforeEach
     void setUp() {
         itemRepository = mock(ItemRepository.class);
-        itemService = new ItemService(itemRepository);
+        workRepository = mock(WorkRepository.class);
+        itemService = new ItemService(itemRepository, workRepository);
+        when(workRepository.existsByName("나루토")).thenReturn(true);
     }
 
     @Test
     void register_성공하면_판매중_상태로_저장한다() {
         ItemCreateRequest request = new ItemCreateRequest(
-                "나루토 피규어", "미개봉", "피규어", "나루토", "우즈마키 나루토", 50_000, ItemCondition.NEW
+                "나루토 피규어", "미개봉", ItemCategory.FIGURE, "나루토", "우즈마키 나루토", 50_000, ItemCondition.NEW
         );
         when(itemRepository.save(any(Item.class))).thenAnswer(invocation -> withId(invocation.getArgument(0), 1L));
 
@@ -53,6 +58,48 @@ class ItemServiceTest {
         assertThat(response.sellerId()).isEqualTo(SELLER_ID);
         assertThat(response.title()).isEqualTo(request.title());
         assertThat(response.status().name()).isEqualTo("SELLING");
+    }
+
+    @Test
+    void register_등록되지_않은_작품이면_예외가_발생한다() {
+        ItemCreateRequest request = new ItemCreateRequest(
+                "피규어", "미개봉", ItemCategory.FIGURE, "없는 작품", null, 50_000, ItemCondition.NEW
+        );
+
+        assertThatThrownBy(() -> itemService.register(SELLER_ID, request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.WORK_NOT_FOUND);
+
+        verify(itemRepository, never()).save(any(Item.class));
+    }
+
+    @Test
+    void register_작품명을_비워두면_작품_검증없이_저장한다() {
+        ItemCreateRequest request = new ItemCreateRequest(
+                "캔뱃지", null, ItemCategory.CAN_BADGE, null, null, 5_000, ItemCondition.USED
+        );
+        when(itemRepository.save(any(Item.class))).thenAnswer(invocation -> withId(invocation.getArgument(0), 1L));
+
+        ItemResponse response = itemService.register(SELLER_ID, request);
+
+        assertThat(response.category()).isEqualTo(ItemCategory.CAN_BADGE);
+        assertThat(response.workTag()).isNull();
+        verify(workRepository, never()).existsByName(any());
+    }
+
+    @Test
+    void update_등록되지_않은_작품으로_바꾸면_예외가_발생한다() {
+        Item item = withId(sampleItem(), 1L);
+        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        ItemUpdateRequest request = new ItemUpdateRequest(
+                "수정된 제목", "설명", ItemCategory.FIGURE, "없는 작품", null, 60_000, ItemCondition.USED
+        );
+
+        assertThatThrownBy(() -> itemService.update(1L, SELLER_ID, request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.WORK_NOT_FOUND);
     }
 
     @Test
@@ -81,7 +128,7 @@ class ItemServiceTest {
         Item item = withId(sampleItem(), 1L);
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         ItemUpdateRequest request = new ItemUpdateRequest(
-                "수정된 제목", "설명", "피규어", "나루토", "우즈마키 나루토", 60_000, ItemCondition.USED
+                "수정된 제목", "설명", ItemCategory.FIGURE, "나루토", "우즈마키 나루토", 60_000, ItemCondition.USED
         );
 
         assertThatThrownBy(() -> itemService.update(1L, OTHER_MEMBER_ID, request))
@@ -95,7 +142,7 @@ class ItemServiceTest {
         Item item = withId(sampleItem(), 1L);
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         ItemUpdateRequest request = new ItemUpdateRequest(
-                "수정된 제목", "수정된 설명", "피규어", "나루토", "우즈마키 나루토", 60_000, ItemCondition.USED
+                "수정된 제목", "수정된 설명", ItemCategory.FIGURE, "나루토", "우즈마키 나루토", 60_000, ItemCondition.USED
         );
 
         ItemResponse response = itemService.update(1L, SELLER_ID, request);
@@ -135,7 +182,7 @@ class ItemServiceTest {
         when(itemRepository.findAll(any(Specification.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(item), pageable, 1));
 
-        ItemSearchCondition condition = new ItemSearchCondition("피규어", "나루토", null, null, null, null);
+        ItemSearchCondition condition = new ItemSearchCondition(ItemCategory.FIGURE, "나루토", null, null, null, null);
         var page = itemService.search(condition, pageable);
 
         assertThat(page.getTotalElements()).isEqualTo(1);
@@ -144,7 +191,7 @@ class ItemServiceTest {
 
     private static Item sampleItem() {
         return Item.register(
-                SELLER_ID, "나루토 피규어", "미개봉", "피규어", "나루토", "우즈마키 나루토", 50_000, ItemCondition.NEW
+                SELLER_ID, "나루토 피규어", "미개봉", ItemCategory.FIGURE, "나루토", "우즈마키 나루토", 50_000, ItemCondition.NEW
         );
     }
 

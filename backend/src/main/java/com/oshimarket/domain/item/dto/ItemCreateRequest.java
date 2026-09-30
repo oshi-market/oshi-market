@@ -1,5 +1,6 @@
 package com.oshimarket.domain.item.dto;
 
+import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemCondition;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -15,10 +16,10 @@ public record ItemCreateRequest(
         @Size(max = 2000, message = "상품 설명은 2000자 이하로 입력해주세요.")
         String description,
 
-        @NotBlank(message = "카테고리를 입력해주세요.")
-        @Size(max = 50)
-        String category,
+        @NotNull(message = "카테고리를 선택해주세요.")
+        ItemCategory category,
 
+        /** 선택 입력. 값이 있으면 work 테이블에 등록된 작품명이어야 함 (ItemService에서 검증). */
         @Size(max = 50)
         String workTag,
 

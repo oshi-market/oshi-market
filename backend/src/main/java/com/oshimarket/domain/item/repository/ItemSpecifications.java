@@ -2,6 +2,7 @@ package com.oshimarket.domain.item.repository;
 
 import com.oshimarket.domain.item.dto.ItemSearchCondition;
 import com.oshimarket.domain.item.entity.Item;
+import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemStatus;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
@@ -32,8 +33,8 @@ public final class ItemSpecifications {
         );
     }
 
-    private static Specification<Item> hasCategory(String category) {
-        if (!StringUtils.hasText(category)) {
+    private static Specification<Item> hasCategory(ItemCategory category) {
+        if (category == null) {
             return Specification.unrestricted();
         }
         return (root, query, cb) -> cb.equal(root.get("category"), category);

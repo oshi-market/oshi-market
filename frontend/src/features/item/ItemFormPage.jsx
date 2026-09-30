@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
-import { createItem, fetchItem, updateItem } from './api';
+import { createItem, fetchItem, fetchWorks, updateItem } from './api';
+import { CATEGORY_LABEL } from './constants';
+import WorkCombobox from './WorkCombobox';
 
 const EMPTY_FORM = {
   title: '',
@@ -21,6 +23,14 @@ function ItemFormPage() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(isEdit);
+  const [works, setWorks] = useState([]);
+
+  /** 작품 목록을 못 불러와도 폼은 쓸 수 있게 두고, 잘못된 작품명은 서버 검증(WORK_NOT_FOUND)에 맡긴다. */
+  useEffect(() => {
+    fetchWorks()
+      .then(({ data }) => setWorks(data))
+      .catch(() => setWorks([]));
+  }, []);
 
   useEffect(() => {
     if (!isEdit) {
@@ -52,7 +62,7 @@ function ItemFormPage() {
     setError('');
     setIsSubmitting(true);
 
-    const payload = { ...form, price: Number(form.price) };
+    const payload = { ...form, workTag: form.workTag.trim() || null, price: Number(form.price) };
 
     try {
       if (isEdit) {
@@ -106,25 +116,27 @@ function ItemFormPage() {
           </label>
           <label className="field">
             카테고리
-            <input
-              className="input"
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              maxLength={50}
-              required
-            />
+            <select className="input" name="category" value={form.category} onChange={handleChange} required>
+              <option value="" disabled>
+                카테고리를 선택해주세요
+              </option>
+              {Object.entries(CATEGORY_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
           </label>
-          <label className="field">
-            작품명
-            <input
-              className="input"
-              name="workTag"
+          <div className="field">
+            <label htmlFor="item-work-tag">작품명</label>
+            <WorkCombobox
+              id="item-work-tag"
               value={form.workTag}
-              onChange={handleChange}
-              maxLength={50}
+              onChange={(workTag) => setForm((prev) => ({ ...prev, workTag }))}
+              options={works.map((work) => work.name)}
+              placeholder="작품명을 검색해서 선택해주세요 (선택)"
             />
-          </label>
+          </div>
           <label className="field">
             캐릭터명
             <input
