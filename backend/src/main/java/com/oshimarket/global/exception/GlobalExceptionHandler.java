@@ -1,6 +1,9 @@
 package com.oshimarket.global.exception;
 
 import com.oshimarket.global.common.ErrorResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,6 +15,8 @@ import org.springframework.web.multipart.support.MissingServletRequestPartExcept
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
@@ -59,5 +64,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleMissingPart(MissingServletRequestPartException e) {
         return ResponseEntity.status(ErrorCode.INVALID_INPUT.getStatus())
                 .body(ErrorResponse.of(ErrorCode.INVALID_INPUT, "업로드할 사진을 선택해주세요."));
+    }
+
+    /**
+     * FK/UNIQUE 등 DB 제약 위반 안전망. 서비스에서 미리 막지 못한 경우에도 500 대신 409로 응답하고,
+     * 원인 파악을 위해 로그는 남긴다 (예: 찜 기능 구현 후 wishlist가 참조 중인 상품 삭제).
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        log.warn("DB 제약 위반: {}", e.getMostSpecificCause().getMessage());
+        return ResponseEntity.status(ErrorCode.DATA_CONFLICT.getStatus())
+                .body(ErrorResponse.of(ErrorCode.DATA_CONFLICT));
     }
 }

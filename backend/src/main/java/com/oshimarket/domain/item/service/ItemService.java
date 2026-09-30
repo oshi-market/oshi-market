@@ -101,6 +101,9 @@ public class ItemService {
     public void delete(Long itemId, Long memberId) {
         Item item = findItemOrThrow(itemId);
         validateOwner(item, memberId);
+        if (itemRepository.hasChatOrTransaction(itemId)) {
+            throw new BusinessException(ErrorCode.ITEM_HAS_CHAT_OR_TRANSACTION);
+        }
 
         List<ItemImage> images = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId);
         itemRepository.delete(item);
