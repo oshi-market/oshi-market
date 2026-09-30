@@ -1,10 +1,13 @@
 package com.oshimarket.domain.chat.service;
 
 import com.oshimarket.domain.chat.dto.ChatMessageResponse;
+import com.oshimarket.domain.chat.dto.ChatRoomResponse;
 import com.oshimarket.domain.chat.entity.ChatRoom;
 import com.oshimarket.domain.chat.entity.Message;
 import com.oshimarket.domain.chat.repository.ChatRoomRepository;
 import com.oshimarket.domain.chat.repository.MessageRepository;
+
+import java.util.List;
 import java.util.NoSuchElementException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,5 +35,14 @@ public class ChatService {
         Message message = Message.create(chatRoomId, senderId, content);
         Message saved = messageRepository.save(message);
         return ChatMessageResponse.from(saved);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChatRoomResponse> getMyChatRooms(Long memberId) {
+        List<ChatRoom> chatRooms = chatRoomRepository.findByBuyerIdOrSellerIdOrderByCreatedAtDesc(memberId, memberId);
+
+        return chatRooms.stream()
+                .map(ChatRoomResponse::from)
+                .toList();
     }
 }
