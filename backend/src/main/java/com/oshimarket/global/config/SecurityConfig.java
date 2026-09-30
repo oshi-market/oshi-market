@@ -19,7 +19,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 /**
  * REST API는 JWT 기반 stateless 인증 (세션 미사용).
  * 회원가입/로그인만 permitAll, 나머지는 인증 필요.
- * WebSocket(/ws-chat) 관련 설정은 채팅 도메인 담당(yjdev101)이 별도로 추가 예정.
+ * WebSocket(/ws-chat) 핸드셰이크는 permitAll — 실제 인증은 STOMP CONNECT 단계에서
+ * WebSocketConfig의 인터셉터가 JwtTokenProvider로 처리.
  */
 @Configuration
 public class SecurityConfig {
@@ -50,6 +51,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/ws-chat/**").permitAll()
                         // 상품 목록/검색/상세, 큐레이션, 작품 목록 조회는 비로그인 사용자도 가능 (1_MVP기획서.md 서비스 흐름:
                         // 둘러보기는 누구나, 등록/수정/삭제 등 실제 액션부터 로그인 필요)
                         .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()

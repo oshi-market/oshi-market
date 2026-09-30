@@ -21,3 +21,6 @@ frontend/build/
 # 백엔드 빌드 산출물 (backend/.gitignore에도 있지만 안전망으로 중복 기재)
 backend/build/
 backend/.gradle/
+
+# 개인 작업 노트 (팀 공유 아님)
+.local-notes/
