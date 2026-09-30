@@ -23,8 +23,9 @@ class WorkServiceTest {
     }
 
     @Test
-    void getWorks_가나다순_목록을_반환한다() {
-        when(workRepository.findAll()).thenReturn(List.of(Work.of("원신"), Work.of("나루토"), Work.of("귀멸의 칼날")));
+    void getWorks_저장소가_정렬한_순서대로_반환한다() {
+        when(workRepository.findAllByOrderByNameAsc())
+                .thenReturn(List.of(Work.of("귀멸의 칼날"), Work.of("나루토"), Work.of("원신")));
 
         List<WorkResponse> works = workService.getWorks();
 
