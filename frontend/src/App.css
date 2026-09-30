@@ -107,7 +107,6 @@ nav {
   font-size: 13px;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border);
-}
 
 .account-menu-dropdown a,
 .account-menu-dropdown button {
@@ -669,6 +668,60 @@ textarea.input {
   margin-bottom: 20px;
 }
 
+.curation-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.curation-filter .input {
+  width: 180px;
+}
+
+.curation-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.curation-card {
+  display: block;
+  padding: 16px 18px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.curation-card:hover {
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+}
+
+.curation-card-store {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.curation-detail-card {
+  max-width: 480px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.curation-detail-card .btn {
+  align-self: flex-start;
+  margin-top: 8px;
+  text-decoration: none;
+}
 .profile-page {
   display: flex;
   justify-content: center;
