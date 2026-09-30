@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
-import { createItem, fetchItem, fetchWorks, updateItem } from './api';
+import { createItem, deleteItemImage, fetchItem, fetchWorks, updateItem, uploadItemImages } from './api';
 import { CATEGORY_LABEL } from './constants';
+import ItemImagePicker from './ItemImagePicker';
 import WorkCombobox from './WorkCombobox';
 
 const EMPTY_FORM = {
@@ -19,11 +20,16 @@ function ItemFormPage() {
   const { itemId } = useParams();
   const isEdit = Boolean(itemId);
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState(EMPTY_FORM);
-  const [error, setError] = useState('');
+  // 등록 화면에서 사진만 실패해 수정 화면으로 넘어온 경우 그 에러를 이어서 보여준다
+  const [error, setError] = useState(location.state?.error ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(isEdit);
   const [works, setWorks] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+  const [removedImageIds, setRemovedImageIds] = useState([]);
+  const [newFiles, setNewFiles] = useState([]);
 
   /** 작품 목록을 못 불러와도 폼은 쓸 수 있게 두고, 잘못된 작품명은 서버 검증(WORK_NOT_FOUND)에 맡긴다. */
   useEffect(() => {
@@ -47,6 +53,7 @@ function ItemFormPage() {
           price: String(data.price),
           condition: data.condition,
         });
+        setExistingImages(data.images ?? []);
       })
       .catch((err) => setError(getErrorMessage(err, '상품 정보를 불러오지 못했습니다.')))
       .finally(() => setIsLoading(false));
@@ -64,18 +71,36 @@ function ItemFormPage() {
 
     const payload = { ...form, workTag: form.workTag.trim() || null, price: Number(form.price) };
 
+    let savedId = itemId;
     try {
       if (isEdit) {
         await updateItem(itemId, payload);
-        navigate(`/items/${itemId}`);
       } else {
         const { data } = await createItem(payload);
-        navigate(`/items/${data.id}`);
+        savedId = data.id;
       }
     } catch (err) {
       setError(getErrorMessage(err, '저장에 실패했습니다.'));
-    } finally {
       setIsSubmitting(false);
+      return;
+    }
+
+    // 상품 저장 후 사진 반영. 사진만 실패하면 상품은 이미 저장됐으므로 수정 화면으로 보내 다시 시도하게 한다
+    // (등록 화면에 머물면 다시 누를 때 상품이 중복 등록됨)
+    try {
+      await Promise.all(removedImageIds.map((imageId) => deleteItemImage(savedId, imageId)));
+      if (newFiles.length > 0) {
+        await uploadItemImages(savedId, newFiles);
+      }
+      navigate(`/items/${savedId}`);
+    } catch (err) {
+      const message = `상품은 저장됐지만 사진 반영에 실패했습니다. ${getErrorMessage(err, '')}`.trim();
+      setIsSubmitting(false);
+      if (isEdit) {
+        setError(message);
+      } else {
+        navigate(`/items/${savedId}/edit`, { replace: true, state: { error: message } });
+      }
     }
   }
 
@@ -127,6 +152,14 @@ function ItemFormPage() {
               ))}
             </select>
           </label>
+          <ItemImagePicker
+            existingImages={existingImages}
+            removedIds={removedImageIds}
+            onRemoveExisting={(imageId) => setRemovedImageIds((prev) => [...prev, imageId])}
+            newFiles={newFiles}
+            onChangeNewFiles={setNewFiles}
+            onError={setError}
+          />
           <div className="field">
             <label htmlFor="item-work-tag">작품명</label>
             <WorkCombobox

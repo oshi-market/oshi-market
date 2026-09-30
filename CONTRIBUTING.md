@@ -13,6 +13,7 @@ Windows/Mac 혼용 2인 팀 기준. 기획 문서는 [`README.md`](./README.md)�
 1. `git clone https://github.com/oshi-market/oshi-market.git`
 2. `docker compose up -d` — 로컬 PostgreSQL 컨테이너 기동 (최초 1회 후, PC 켤 때마다 필요하면 재실행)
 3. 백엔드 실행: `cd backend && ./gradlew bootRun` (Windows는 `gradlew.bat bootRun`)
+   - 상품 사진 업로드까지 쓰려면 `backend/.env.example`을 복사해 `backend/.env`를 만들고 `CLOUDINARY_URL`을 채움 (값은 팀원에게 개인 채널로 받기, git에 올리지 말 것). 없어도 서버는 뜨고 사진 업로드만 안 됨
 4. 프론트엔드 실행: `cd frontend && npm install && cp .env.example .env && npm run dev`
 
 ## 프로젝트 구조

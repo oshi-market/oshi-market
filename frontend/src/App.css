@@ -878,3 +878,147 @@ textarea.input {
 .combobox-empty {
   color: var(--text-faint);
 }
+
+/* 상품 사진 (썸네일 / 상세 갤러리 / 등록 화면 사진 선택) */
+.item-card-thumb {
+  overflow: hidden;
+}
+
+.item-card-thumb img,
+.item-detail-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.item-detail-gallery {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-detail-gallery .item-detail-thumb {
+  width: 100%;
+  overflow: hidden;
+}
+
+/* 상세 큰 사진은 잘리지 않게 전체 표시 */
+.item-detail-gallery .item-detail-thumb img {
+  object-fit: contain;
+}
+
+.item-detail-thumbs {
+  display: flex;
+  gap: 8px;
+}
+
+.item-detail-thumbs-button {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated-2);
+  cursor: pointer;
+}
+
+.item-detail-thumbs-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.item-detail-thumbs-button.is-active {
+  border-color: var(--accent);
+}
+
+.home-item-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+
+.image-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.image-picker-item,
+.image-picker-add {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.image-picker-item {
+  border: 1px solid var(--border);
+  background: var(--bg-elevated-2);
+}
+
+/* 첫 번째 사진 = 대표 사진 */
+.image-picker-item:first-child {
+  border-color: var(--accent-border);
+}
+
+.image-picker-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.image-picker-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(15, 14, 22, 0.75);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.image-picker-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px dashed var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.image-picker-add span {
+  font-size: 22px;
+}
+
+.image-picker-add:hover {
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+@media (max-width: 639px) {
+  .item-detail-gallery {
+    width: 100%;
+  }
+}

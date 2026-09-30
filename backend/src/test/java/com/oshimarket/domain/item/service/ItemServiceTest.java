@@ -15,6 +15,8 @@ import com.oshimarket.domain.item.dto.ItemUpdateRequest;
 import com.oshimarket.domain.item.entity.Item;
 import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemCondition;
+import com.oshimarket.domain.item.entity.ItemImage;
+import com.oshimarket.domain.item.repository.ItemImageRepository;
 import com.oshimarket.domain.item.repository.ItemRepository;
 import com.oshimarket.domain.work.repository.WorkRepository;
 import com.oshimarket.global.exception.BusinessException;
@@ -36,13 +38,17 @@ class ItemServiceTest {
 
     private ItemRepository itemRepository;
     private WorkRepository workRepository;
+    private ItemImageRepository itemImageRepository;
+    private ItemImageService itemImageService;
     private ItemService itemService;
 
     @BeforeEach
     void setUp() {
         itemRepository = mock(ItemRepository.class);
         workRepository = mock(WorkRepository.class);
-        itemService = new ItemService(itemRepository, workRepository);
+        itemImageRepository = mock(ItemImageRepository.class);
+        itemImageService = mock(ItemImageService.class);
+        itemService = new ItemService(itemRepository, workRepository, itemImageRepository, itemImageService);
         when(workRepository.existsByName("나루토")).thenReturn(true);
     }
 
@@ -173,6 +179,35 @@ class ItemServiceTest {
         itemService.delete(1L, SELLER_ID);
 
         verify(itemRepository).delete(item);
+    }
+
+    @Test
+    void delete_상품을_지운_뒤_저장소의_사진_파일도_정리한다() {
+        Item item = withId(sampleItem(), 1L);
+        List<ItemImage> images = List.of(ItemImage.of(1L, "https://img/1.jpg", "items/1", 0));
+        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(itemImageRepository.findByItemIdOrderBySortOrderAsc(1L)).thenReturn(images);
+
+        itemService.delete(1L, SELLER_ID);
+
+        var inOrder = org.mockito.Mockito.inOrder(itemRepository, itemImageService);
+        inOrder.verify(itemRepository).delete(item);
+        inOrder.verify(itemImageService).deleteStoredFiles(images);
+    }
+
+    @Test
+    void getItem_사진이_있으면_첫_사진을_썸네일로_반환한다() {
+        Item item = withId(sampleItem(), 1L);
+        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(itemImageRepository.findByItemIdOrderBySortOrderAsc(1L)).thenReturn(List.of(
+                ItemImage.of(1L, "https://img/first.jpg", "items/first", 0),
+                ItemImage.of(1L, "https://img/second.jpg", "items/second", 1)
+        ));
+
+        ItemResponse response = itemService.getItem(1L);
+
+        assertThat(response.thumbnailUrl()).isEqualTo("https://img/first.jpg");
+        assertThat(response.images()).hasSize(2);
     }
 
     @Test
