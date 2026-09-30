@@ -107,6 +107,7 @@ nav {
   font-size: 13px;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border);
+}
 
 .account-menu-dropdown a,
 .account-menu-dropdown button {
