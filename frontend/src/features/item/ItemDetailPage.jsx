@@ -12,6 +12,7 @@ function ItemDetailPage() {
   const navigate = useNavigate();
   const [item, setItem] = useState(null);
   const [error, setError] = useState('');
+  const [deleteError, setDeleteError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -43,11 +44,13 @@ function ItemDetailPage() {
     if (!window.confirm('이 상품을 삭제할까요?')) {
       return;
     }
+    setDeleteError('');
     try {
       await deleteItem(itemId);
       navigate('/items');
     } catch (err) {
-      setError(getErrorMessage(err, '삭제에 실패했습니다.'));
+      // 상세 화면은 그대로 두고 버튼 옆에만 안내 (예: 채팅/거래가 진행된 상품은 409)
+      setDeleteError(getErrorMessage(err, '삭제에 실패했습니다.'));
     }
   }
 
@@ -126,6 +129,11 @@ function ItemDetailPage() {
               삭제
             </button>
           </div>
+        )}
+        {isOwner && deleteError && (
+          <p className="form-error" role="alert">
+            {deleteError}
+          </p>
         )}
       </div>
     </div>

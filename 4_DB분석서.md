@@ -6,7 +6,15 @@ DB는 원래 MySQL로 확정했었으나, 팀이 MySQL은 충분히 다뤄봤으
 
 ## 1. 설계 원칙
 
-- 3NF(제3정규형) 기준으로 설계, 중복 데이터를 최소화
+- 3NF(제3정규형) 기준으로 설계, 중복 데이터를 최소화. 단, 아래는 **조회 성능·단순화를 위한 의도적 중복(비정규화)**:
+  - `transaction.buyer_id`/`seller_id`: `chat_room`(→ `item.seller_id`)을 거슬러 올라가면 알 수 있지만, "내 거래 내역" 조회를 조인 없이 인덱스 한 번으로 처리하려고 저장
+  - `chat_room.seller_id`: `item.seller_id`와 같은 값. "내 채팅방 목록"을 조인 없이 조회하려고 저장
+  - `item.work_tag`/`curation.work_tag`: `work.id` FK 대신 이름 문자열 저장 (아래 WORK 설명 참고)
+  - 중복 값은 생성 시점에 한 번만 복사하고 이후 바뀌지 않는 값(판매자·구매자)이라 불일치 위험이 낮음
+- 모든 시각 컬럼은 **한국 시간(Asia/Seoul) 기준 `TIMESTAMP`**. DB 기본 시간대(V4)와 앱 JVM 시간대(`OshiMarketApplication`)를 모두 고정해 서버 OS 시간대와 무관하게 일치시킴. `TIMESTAMPTZ` 전환은 엔티티 타입(`OffsetDateTime`) 변경이 필요해 후속 과제
+- 수정 가능한 테이블(`user_account`, `item`, `transaction`, `review`, `curation`)은 `updated_at` 포함 — DB 트리거(`set_updated_at`)가 UPDATE 시 자동 갱신하므로 엔티티에 매핑하지 않아도 됨 (V4)
+- 값 범위는 애플리케이션 검증 + DB `CHECK` 제약으로 이중 방어 (V4: 가격 > 0, 별점 1~5, 상품 상태/컨디션 값, 사진 순서 ≥ 0)
+- 이름성 컬럼(닉네임, 상품명, 작품/캐릭터명, 구매처명)은 한국어 collation(`ko-KR-x-icu`)이라 `ORDER BY`가 가나다순 (V4)
 - Item–Curation은 FK 대신 `work_tag`/`character_tag` 매칭 (설계 이유는 3번 문서 참고)
 - 모든 PK는 `BIGSERIAL`(자동 증가), 모든 테이블에 `created_at` 포함 (감사 추적용)
 - `USER`는 PostgreSQL 예약어라 테이블명은 `USER_ACCOUNT`로 사용
@@ -42,9 +50,11 @@ DB는 원래 MySQL로 확정했었으나, 팀이 MySQL은 충분히 다뤄봤으
 | status | VARCHAR(20) | NOT NULL, DEFAULT 'SELLING' (ENUM: SELLING, IN_TRANSACTION, SOLD_OUT) |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP |
 
-인덱스: `(category, work_tag, character_tag)` 복합 인덱스(검색/필터가 MVP 핵심 기능이라 우선순위 높음), `seller_id`(내 상품 조회), `status`
+인덱스: `(category, work_tag, character_tag)` 복합 인덱스(검색/필터), `created_at DESC`(최신순 목록·홈), `(seller_id, created_at DESC)`(내 상품), `title` trigram GIN(키워드 검색). V4에서 `seller_id`/`status` 단일 인덱스는 위 인덱스로 대체·제거 (`status`는 값이 3종뿐이라 선택도가 낮음)
 
-Elasticsearch 도입 전까지는 이 인덱스 + PostgreSQL 내장 풀텍스트 검색(`tsvector`)으로 검색을 처리 ([`2_기술스택분석서.md`](./2_기술스택분석서.md) 향후 확장 계획 참고).
+**상품 삭제 정책**: `chat_room`/`transaction`이 `item`을 FK로 참조하고(CASCADE 없음), 거래 기록도 보존해야 하므로 채팅방이나 거래가 하나라도 있는 상품은 삭제를 막는다 (409 `ITEM_HAS_CHAT_OR_TRANSACTION`, `ItemService#delete`에서 사전 확인). 그 밖의 FK 위반은 공통 예외 처리에서 500 대신 409 `DATA_CONFLICT`로 응답. 찜(`wishlist`) 구현 시에는 찜한 상품이 삭제되면 찜도 함께 지워지도록 `ON DELETE CASCADE` 전환 필요.
+
+**키워드 검색**: `title ILIKE '%키워드%'` 부분 일치 + `pg_trgm` trigram GIN 인덱스(V4). 원래 계획이던 `tsvector` 풀텍스트 검색은 PostgreSQL에 한국어 형태소 분석기가 없어 "나루토피규어" 같은 붙여 쓴 한국어를 제대로 쪼개지 못하므로 채택하지 않음. trigram은 언어와 무관하게 부분 문자열로 인덱스를 타서 한국어 부분 검색에 적합. 형태소 기반 검색·오타 교정이 필요해지면 Elasticsearch(nori 분석기) 도입 ([`2_기술스택분석서.md`](./2_기술스택분석서.md) 향후 확장 계획 참고).
 
 **CHATROOM** (MVP 핵심, 담당: yjdev101)
 
@@ -86,7 +96,7 @@ Elasticsearch 도입 전까지는 이 인덱스 + PostgreSQL 내장 풀텍스트
 | transacted_at | TIMESTAMP | NULL 허용 (완료 시점에 채움) |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP |
 
-인덱스: `item_id`, `chat_room_id`, `buyer_id`, `seller_id` (내 거래 내역 조회)
+인덱스: `item_id`, `chat_room_id`, `(buyer_id, created_at DESC)`·`(seller_id, created_at DESC)` (내 거래 내역 구매/판매 최신순 조회, V4에서 단일 인덱스 대체)
 
 **item_id/chat_room_id는 UNIQUE가 아님(의도적)**: 거래가 취소(CANCELLED)된 뒤에는 같은 상품·같은 채팅방에서 새 거래를 다시 생성할 수 있어야 함. DB가 막아야 할 건 "이 상품에 평생 거래 1건"이 아니라 "이 상품에 **동시에 진행 중인** 거래가 2건 이상 생기는 것"이며, 이건 아래 동시성 제어(비관적 락 + `item.status` 체크)로 이미 처리됨. UNIQUE로 걸면 정상적인 재요청 시나리오까지 막혀버림. (2026-09-16 외부 피드백으로 수정)
 
@@ -179,3 +189,11 @@ Spring Boot 기본 내장 **HikariCP** 사용, 초기값(최대 커넥션 10)으
 ## 6. 백업 전략
 
 RDS 대신 EC2 컨테이너에 PostgreSQL을 직접 올리는 구조([`2_기술스택분석서.md`](./2_기술스택분석서.md) 배포 환경 참고)라 관리형 자동 백업이 없음. `pg_dump`를 cron으로 주기 실행해 EC2 로컬 또는 S3에 백업 (발표/MVP 단계에서는 최소 구현으로 충분, 실서비스 전환 시 RDS 이전 고려 대상).
+
+| 항목 | 기준 |
+|---|---|
+| 주기 | 매일 새벽 4시 `pg_dump -Fc` (커스텀 포맷, 압축·선택 복구 가능) |
+| 보관 기간 | 일별 백업 7개 + 주별(일요일) 백업 4개 유지, 그보다 오래된 파일은 cron에서 삭제 |
+| 저장 위치 | EC2 로컬 + 외부(S3 등) 1부 이상. EC2 디스크만 쓰면 인스턴스 장애 시 백업도 함께 사라짐 |
+| 복구 테스트 | 월 1회 최신 백업을 별도 컨테이너에 `pg_restore`로 복구 → 주요 테이블 행 수 확인 및 앱 기동 확인. **복구해 본 적 없는 백업은 백업이 아님** |
+| 사진 파일 | DB 백업에는 URL만 있고 파일은 Cloudinary에 있음 (Cloudinary 자체 보관에 의존) |
