@@ -90,6 +90,21 @@ Elasticsearch 도입 전까지는 이 인덱스 + PostgreSQL 내장 풀텍스트
 
 **item_id/chat_room_id는 UNIQUE가 아님(의도적)**: 거래가 취소(CANCELLED)된 뒤에는 같은 상품·같은 채팅방에서 새 거래를 다시 생성할 수 있어야 함. DB가 막아야 할 건 "이 상품에 평생 거래 1건"이 아니라 "이 상품에 **동시에 진행 중인** 거래가 2건 이상 생기는 것"이며, 이건 아래 동시성 제어(비관적 락 + `item.status` 체크)로 이미 처리됨. UNIQUE로 걸면 정상적인 재요청 시나리오까지 막혀버림. (2026-09-16 외부 피드백으로 수정)
 
+**ITEM_IMAGE** (상품 사진, V3 추가)
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| id | BIGSERIAL | PK |
+| item_id | BIGINT | NOT NULL, FK → ITEM(id) ON DELETE CASCADE |
+| url | VARCHAR(500) | NOT NULL (Cloudinary 원본 URL) |
+| public_id | VARCHAR(255) | NOT NULL (Cloudinary 삭제용 식별자) |
+| sort_order | INT | NOT NULL (가장 작은 값이 대표 사진/목록 썸네일) |
+| created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP |
+
+인덱스: `(item_id, sort_order)` (상품별 사진을 순서대로 조회)
+
+사진 파일은 DB가 아닌 Cloudinary에 저장하고 URL/`public_id`만 보관. 상품당 최대 5장, 장당 10MB, JPG/PNG/WEBP (애플리케이션에서 검증). 상품 삭제 시 행은 CASCADE로 지워지고 Cloudinary 파일은 DB 삭제 성공 후 애플리케이션에서 정리 (삭제 실패 시 로그만 남기고 요청은 성공 처리).
+
 **WORK** (작품 마스터, V2 추가)
 
 | 컬럼 | 타입 | 제약 |

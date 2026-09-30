@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
 import { useAuth } from '../member/useAuth';
 import { fetchItems } from './api';
+import ItemThumb from './ItemThumb';
 import { STATUS_LABEL } from './constants';
 
 function MyItemsPage() {
@@ -37,9 +38,7 @@ function MyItemsPage() {
       <div className="item-grid">
         {items.map((item) => (
           <Link to={`/items/${item.id}`} key={item.id} className="item-card">
-            <div className="item-card-thumb" aria-hidden="true">
-              🖼️
-            </div>
+            <ItemThumb url={item.thumbnailUrl} alt={item.title} />
             <div className="item-card-body">
               <p className="item-card-title">{item.title}</p>
               <p className="item-card-price">{item.price.toLocaleString()}원</p>
