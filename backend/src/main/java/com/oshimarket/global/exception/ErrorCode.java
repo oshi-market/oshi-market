@@ -17,6 +17,13 @@ public enum ErrorCode {
     ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
     ITEM_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 등록한 상품만 수정/삭제할 수 있습니다."),
     WORK_NOT_FOUND(HttpStatus.BAD_REQUEST, "등록되지 않은 작품입니다. 목록에서 선택해주세요."),
+    IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "사진을 찾을 수 없습니다."),
+    IMAGE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "사진은 상품당 최대 5장까지 등록할 수 있습니다."),
+    IMAGE_INVALID_TYPE(HttpStatus.BAD_REQUEST, "사진은 JPG, PNG, WEBP 형식만 올릴 수 있습니다."),
+    IMAGE_TOO_LARGE(HttpStatus.BAD_REQUEST, "사진은 한 장당 10MB 이하만 올릴 수 있습니다."),
+    IMAGE_UPLOAD_FAILED(HttpStatus.BAD_GATEWAY, "사진 업로드에 실패했습니다. 잠시 후 다시 시도해주세요."),
+    IMAGE_DELETE_FAILED(HttpStatus.BAD_GATEWAY, "사진 삭제에 실패했습니다."),
+    IMAGE_STORAGE_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "사진 저장소가 설정되지 않았습니다. (CLOUDINARY_URL)"),
     CURATION_NOT_FOUND(HttpStatus.NOT_FOUND, "큐레이션 정보를 찾을 수 없습니다.");
 
     private final HttpStatus status;

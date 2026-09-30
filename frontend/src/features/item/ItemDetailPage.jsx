@@ -4,6 +4,7 @@ import { getErrorMessage } from '../../api/errors';
 import { useAuth } from '../member/useAuth';
 import { deleteItem, fetchItem } from './api';
 import { CATEGORY_LABEL, CONDITION_LABEL, STATUS_LABEL } from './constants';
+import { imageUrl } from './imageUrl';
 
 function ItemDetailPage() {
   const { itemId } = useParams();
@@ -12,6 +13,7 @@ function ItemDetailPage() {
   const [item, setItem] = useState(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -20,7 +22,10 @@ function ItemDetailPage() {
 
     fetchItem(itemId)
       .then(({ data }) => {
-        if (!cancelled) setItem(data);
+        if (!cancelled) {
+          setItem(data);
+          setSelectedIndex(0);
+        }
       })
       .catch((err) => {
         if (!cancelled) setError(getErrorMessage(err, '상품 정보를 불러오지 못했습니다.'));
@@ -67,11 +72,34 @@ function ItemDetailPage() {
   }
 
   const isOwner = isAuthenticated && member?.id === item.sellerId;
+  const images = item.images ?? [];
+  const selectedImage = images[selectedIndex] ?? images[0];
 
   return (
     <div className="page item-detail-page">
-      <div className="item-detail-thumb" aria-hidden="true">
-        🖼️
+      <div className="item-detail-gallery">
+        <div className="item-detail-thumb">
+          {selectedImage ? (
+            <img src={imageUrl(selectedImage.url, 'detail')} alt={item.title} />
+          ) : (
+            <span aria-hidden="true">🖼️</span>
+          )}
+        </div>
+        {images.length > 1 && (
+          <div className="item-detail-thumbs">
+            {images.map((image, index) => (
+              <button
+                type="button"
+                key={image.id}
+                className={`item-detail-thumbs-button${index === selectedIndex ? ' is-active' : ''}`}
+                aria-label={`${index + 1}번째 사진 보기`}
+                onClick={() => setSelectedIndex(index)}
+              >
+                <img src={imageUrl(image.url, 'mini')} alt="" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <div className="item-detail-body">
         <div className="item-detail-meta">

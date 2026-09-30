@@ -1,6 +1,13 @@
 spring:
   application:
     name: oshi-market
+  # backend/.env (git 제외)의 CLOUDINARY_URL 등 로컬 비밀값을 읽는다. 파일이 없어도 기동은 됨.
+  config:
+    import: optional:file:.env[.properties]
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 50MB
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:oshimarket}
     username: ${DB_USERNAME:oshimarket}
@@ -16,6 +23,11 @@ spring:
 jwt:
   secret: ${JWT_SECRET:local-dev-only-secret-change-me-please-32bytes+}
   access-token-expiration-ms: 3600000
+
+# 사진 저장소. 값이 없으면 서버는 뜨지만 사진 업로드 시 IMAGE_STORAGE_NOT_CONFIGURED 에러.
+cloudinary:
+  url: ${CLOUDINARY_URL:}
+  folder: oshi-market/items
 
 management:
   endpoints:
