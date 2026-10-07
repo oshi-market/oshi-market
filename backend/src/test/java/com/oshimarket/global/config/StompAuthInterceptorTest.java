@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -70,8 +72,41 @@ class StompAuthInterceptorTest {
                 .isInstanceOf(MessageDeliveryException.class);
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {"/sub/chat/*", "/sub/chat/**", "/sub/**", "/sub/chat/100/x", "/queue/errors-user1", "/queue/**"})
+    void SUBSCRIBE_와일드카드나_허용목록에_없는_주소는_거절한다(String destination) {
+        assertThatThrownBy(() -> interceptor.preSend(subscribe(destination), channel))
+                .isInstanceOf(MessageDeliveryException.class);
+    }
+
+    @Test
+    void SUBSCRIBE_내_에러_큐는_허용한다() {
+        Message<byte[]> msg = subscribe("/user/queue/errors");
+        assertThat(interceptor.preSend(msg, channel)).isSameAs(msg);
+    }
+
+    @Test
+    void SEND_pub_주소는_허용한다() {
+        Message<byte[]> msg = send("/pub/chat/" + MY_ROOM);
+        assertThat(interceptor.preSend(msg, channel)).isSameAs(msg);
+    }
+
+    @Test
+    void SEND_브로커_주소로_직접_보내면_거절한다() {
+        assertThatThrownBy(() -> interceptor.preSend(send("/sub/chat/" + OTHER_ROOM), channel))
+                .isInstanceOf(MessageDeliveryException.class);
+    }
+
+    private Message<byte[]> send(String destination) {
+        return withSession(StompCommand.SEND, destination);
+    }
+
     private Message<byte[]> subscribe(String destination) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.SUBSCRIBE);
+        return withSession(StompCommand.SUBSCRIBE, destination);
+    }
+
+    private Message<byte[]> withSession(StompCommand command, String destination) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(command);
         accessor.setDestination(destination);
         Map<String, Object> session = new HashMap<>();
         session.put("userId", ME);

@@ -20,7 +20,6 @@ import java.lang.reflect.Field;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.dao.DataIntegrityViolationException;
 
 class ChatServiceTest {
 
@@ -44,9 +43,10 @@ class ChatServiceTest {
 
     @Test
     void openChatRoom_처음이면_방을_만든다() {
-        when(chatRoomRepository.findByItemIdAndBuyerId(ITEM_ID, BUYER)).thenReturn(Optional.empty());
-        when(chatRoomRepository.saveAndFlush(any(ChatRoom.class)))
-                .thenAnswer(invocation -> withId(invocation.getArgument(0), 100L));
+        ChatRoom inserted = withId(ChatRoom.create(ITEM_ID, BUYER, SELLER), 100L);
+        when(chatRoomRepository.findByItemIdAndBuyerId(ITEM_ID, BUYER))
+                .thenReturn(Optional.empty(), Optional.of(inserted));
+        when(chatRoomRepository.insertIfAbsent(ITEM_ID, BUYER, SELLER)).thenReturn(1);
 
         ChatService.OpenResult result = chatService.openChatRoom(ITEM_ID, BUYER);
 
@@ -63,16 +63,15 @@ class ChatServiceTest {
 
         assertThat(result.created()).isFalse();
         assertThat(result.room().getId()).isEqualTo(100L);
-        verify(chatRoomRepository, never()).saveAndFlush(any());
+        verify(chatRoomRepository, never()).insertIfAbsent(any(), any(), any());
     }
 
     @Test
-    void openChatRoom_동시에_두번_눌러_유니크에_걸리면_먼저_만들어진_방을_돌려준다() {
+    void openChatRoom_동시에_두번_눌러_다른_요청이_먼저_만들었으면_그_방을_돌려준다() {
         ChatRoom existing = withId(ChatRoom.create(ITEM_ID, BUYER, SELLER), 100L);
         when(chatRoomRepository.findByItemIdAndBuyerId(ITEM_ID, BUYER))
                 .thenReturn(Optional.empty(), Optional.of(existing));
-        when(chatRoomRepository.saveAndFlush(any(ChatRoom.class)))
-                .thenThrow(new DataIntegrityViolationException("uk_chat_room_item_buyer"));
+        when(chatRoomRepository.insertIfAbsent(ITEM_ID, BUYER, SELLER)).thenReturn(0); // ON CONFLICT DO NOTHING
 
         ChatService.OpenResult result = chatService.openChatRoom(ITEM_ID, BUYER);
 

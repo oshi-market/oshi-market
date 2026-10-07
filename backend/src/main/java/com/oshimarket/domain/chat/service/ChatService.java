@@ -8,9 +8,9 @@ import com.oshimarket.domain.chat.repository.ChatRoomRepository;
 import com.oshimarket.domain.chat.repository.MessageRepository;
 import com.oshimarket.domain.item.entity.Item;
 import com.oshimarket.domain.item.repository.ItemRepository;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
@@ -39,7 +39,7 @@ public class ChatService {
 
     // POST /api/items/{itemId}/chatrooms
     //  - 본인 상품이면 거절, 이미 방이 있으면 그 방 반환, 없으면 생성
-    //  - 같은 사람이 '채팅하기'를 동시에 두 번 눌러 (item_id, buyer_id) UNIQUE에 걸리면 먼저 만들어진 방을 돌려준다
+    //  - 같은 사람이 '채팅하기'를 동시에 두 번 눌러도 INSERT ... ON CONFLICT DO NOTHING이라 방은 하나만 생긴다
     @Transactional
     public OpenResult openChatRoom(Long itemId, Long buyerId) {
         Item item = itemRepository.findById(itemId)
@@ -47,19 +47,14 @@ public class ChatService {
         if (item.isOwnedBy(buyerId)) {
             throw new BusinessException(ErrorCode.CHAT_SELF_ITEM);
         }
-        return chatRoomRepository.findByItemIdAndBuyerId(itemId, buyerId)
-                .map(room -> new OpenResult(ChatRoomResponse.from(room), false))
-                .orElseGet(() -> create(itemId, buyerId, item.getSellerId()));
-    }
-
-    private OpenResult create(Long itemId, Long buyerId, Long sellerId) {
-        try {
-            ChatRoom saved = chatRoomRepository.saveAndFlush(ChatRoom.create(itemId, buyerId, sellerId));
-            return new OpenResult(ChatRoomResponse.from(saved), true);
-        } catch (DataIntegrityViolationException e) {
-            ChatRoom existing = chatRoomRepository.findByItemIdAndBuyerId(itemId, buyerId).orElseThrow(() -> e);
-            return new OpenResult(ChatRoomResponse.from(existing), false);
+        Optional<ChatRoom> existing = chatRoomRepository.findByItemIdAndBuyerId(itemId, buyerId);
+        if (existing.isPresent()) {
+            return new OpenResult(ChatRoomResponse.from(existing.get()), false);
         }
+        boolean created = chatRoomRepository.insertIfAbsent(itemId, buyerId, item.getSellerId()) == 1;
+        ChatRoom room = chatRoomRepository.findByItemIdAndBuyerId(itemId, buyerId)
+                .orElseThrow(() -> new IllegalStateException("채팅방 생성 직후 조회 실패 itemId=" + itemId));
+        return new OpenResult(ChatRoomResponse.from(room), created);
     }
 
     /** 채팅방 참여자(구매자/판매자)인지. STOMP 구독 권한 검사에 쓴다. */

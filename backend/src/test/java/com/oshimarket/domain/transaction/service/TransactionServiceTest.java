@@ -144,6 +144,16 @@ class TransactionServiceTest {
     }
 
     @Test
+    void changeStatus_거래_row를_잠근_뒤에_상태를_확인한다() {
+        givenTransaction(TransactionStatus.REQUESTED);
+
+        service.changeStatus(TX_ID, SELLER, TransactionStatus.IN_PROGRESS);
+
+        verify(transactionRepository).findByIdForUpdate(TX_ID);
+        verify(transactionRepository, never()).findById(any());
+    }
+
+    @Test
     void get_거래_당사자가_아니면_거절한다() {
         givenTransaction(TransactionStatus.REQUESTED);
 
@@ -160,6 +170,7 @@ class TransactionServiceTest {
             transaction.changeStatus(TransactionStatus.COMPLETED);
         }
         when(transactionRepository.findById(TX_ID)).thenReturn(Optional.of(transaction));
+        when(transactionRepository.findByIdForUpdate(TX_ID)).thenReturn(Optional.of(transaction));
     }
 
     private static <T> T withId(T entity, Long id) {
