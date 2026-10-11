@@ -18,6 +18,18 @@ function formatTime(value) {
 }
 
 /**
+ * 거래 알림이 오면 대화 사이에 넣는 안내 문구. 상태마다 바꿀 수 있는 사람이 정해져 있어서
+ * (요청은 구매자, 수락은 판매자) 누가 했는지 따로 받지 않아도 된다.
+ * 화면에만 넣는 것이라 새로고침하면 사라진다.
+ */
+const TRANSACTION_NOTICE = {
+  REQUESTED: '구매자가 거래를 요청했어요',
+  IN_PROGRESS: '판매자가 거래를 수락했어요',
+  COMPLETED: '거래가 완료됐어요',
+  CANCELLED: '거래가 취소됐어요',
+};
+
+/**
  * 이 채팅방의 가장 최근 거래. 방 단위 거래 조회 API가 아직 없어 내 거래 목록에서 찾는다.
  * (개선 후보: GET /api/chatrooms/{id}/transaction)
  */
@@ -40,6 +52,11 @@ function ChatRoomPage() {
   const [socketError, setSocketError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const bottomRef = useRef(null);
+  const transactionRef = useRef(null);
+
+  useEffect(() => {
+    transactionRef.current = transaction;
+  }, [transaction]);
 
   const refreshTransaction = useCallback(() => {
     findLatestTransaction(chatRoomId).then(setTransaction).catch(() => {});
@@ -86,13 +103,21 @@ function ChatRoomPage() {
 
   // 상대방이 거래를 요청·수락·완료·취소하면 서버가 커밋 뒤에 알려 준다 → ↻ 없이 바로 반영
   const handleTransaction = useCallback((next) => {
-    setTransaction((prev) => {
-      // 취소 뒤 새 요청처럼 다른 거래가 오면 더 최근 것만 받는다
-      if (prev && prev.id !== next.id && new Date(prev.createdAt) > new Date(next.createdAt)) {
-        return prev;
-      }
-      return next;
-    });
+    const prev = transactionRef.current;
+    // 취소 뒤 새 요청처럼 다른 거래가 오면 더 최근 것만 받는다
+    if (prev && prev.id !== next.id && new Date(prev.createdAt) > new Date(next.createdAt)) {
+      return;
+    }
+    setTransaction(next);
+
+    const content = TRANSACTION_NOTICE[next.status];
+    if (!content) return;
+    const id = `tx-${next.id}-${next.status}`; // 같은 알림이 두 번 와도 한 줄만
+    setMessages((list) =>
+      list.some((m) => m.id === id)
+        ? list
+        : [...list, { id, system: true, content, createdAt: new Date().toISOString() }],
+    );
   }, []);
 
   const handleSocketError = useCallback((message) => setSocketError(message), []);
@@ -163,12 +188,19 @@ function ChatRoomPage() {
 
       <div className="chat-messages">
         {messages.length === 0 && <p className="muted">첫 메시지를 보내 보세요.</p>}
-        {messages.map((m) => (
-          <div key={m.id} className={`chat-bubble${m.senderId === member?.id ? ' is-mine' : ''}`}>
-            {m.content}
-            <span className="chat-bubble-time">{formatTime(m.createdAt)}</span>
-          </div>
-        ))}
+        {messages.map((m) =>
+          m.system ? (
+            <div key={m.id} className="chat-notice" role="status">
+              {m.content}
+              <span className="chat-notice-time">{formatTime(m.createdAt)}</span>
+            </div>
+          ) : (
+            <div key={m.id} className={`chat-bubble${m.senderId === member?.id ? ' is-mine' : ''}`}>
+              {m.content}
+              <span className="chat-bubble-time">{formatTime(m.createdAt)}</span>
+            </div>
+          ),
+        )}
         <div ref={bottomRef} />
       </div>
 

@@ -64,9 +64,31 @@
 }
 
 .chat-trade-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   margin-right: auto;
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+.chat-trade-badge {
+  font-size: 0.85rem;
+  animation: chat-badge-pop 0.6s ease-out;
+}
+
+@keyframes chat-badge-pop {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  30% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px transparent;
+  }
 }
 
 .chat-messages {
@@ -114,4 +136,28 @@
   border-radius: var(--radius-md);
   background: var(--bg);
   color: var(--text);
+}
+
+/* 거래 알림 안내 줄 (대화 사이 가운데) */
+.chat-notice {
+  align-self: center;
+  max-width: 90%;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--bg-elevated-2);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.chat-notice-time {
+  margin-left: 6px;
+  font-size: 0.7rem;
+  color: var(--text-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-trade-badge {
+    animation: none;
+  }
 }

@@ -33,7 +33,17 @@ function TradePanel({ chatRoomId, isBuyer, isSeller, transaction, onChange, onRe
   return (
     <div className="chat-trade">
       <span className="chat-trade-status">
-        {transaction ? `거래 상태: ${TRANSACTION_STATUS_LABEL[status] ?? status}` : '아직 거래 요청이 없어요'}
+        {transaction ? (
+          <>
+            거래 상태
+            {/* key가 바뀌면 다시 그려져서, 상태가 바뀔 때마다 배지가 한 번 튄다 */}
+            <span key={status} className={`badge badge-transaction-${status.toLowerCase()} chat-trade-badge`}>
+              {TRANSACTION_STATUS_LABEL[status] ?? status}
+            </span>
+          </>
+        ) : (
+          '아직 거래 요청이 없어요'
+        )}
       </span>
 
       {!isActive && isBuyer && (
