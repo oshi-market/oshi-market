@@ -18,6 +18,7 @@ import com.oshimarket.domain.item.repository.ItemRepository;
 import com.oshimarket.domain.transaction.dto.TransactionResponse;
 import com.oshimarket.domain.transaction.entity.Transaction;
 import com.oshimarket.domain.transaction.entity.TransactionStatus;
+import com.oshimarket.domain.transaction.event.TransactionChangedEvent;
 import com.oshimarket.domain.transaction.repository.TransactionRepository;
 import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
@@ -25,6 +26,8 @@ import java.lang.reflect.Field;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.context.ApplicationEventPublisher;
 
 class TransactionServiceTest {
 
@@ -38,6 +41,7 @@ class TransactionServiceTest {
     private TransactionRepository transactionRepository;
     private ChatRoomRepository chatRoomRepository;
     private ItemRepository itemRepository;
+    private ApplicationEventPublisher eventPublisher;
     private TransactionService service;
     private Item item;
 
@@ -46,7 +50,8 @@ class TransactionServiceTest {
         transactionRepository = mock(TransactionRepository.class);
         chatRoomRepository = mock(ChatRoomRepository.class);
         itemRepository = mock(ItemRepository.class);
-        service = new TransactionService(transactionRepository, chatRoomRepository, itemRepository);
+        eventPublisher = mock(ApplicationEventPublisher.class);
+        service = new TransactionService(transactionRepository, chatRoomRepository, itemRepository, eventPublisher);
 
         item = withId(Item.register(SELLER, "나루토 피규어", "미개봉", ItemCategory.FIGURE, "나루토", "나루토", 50_000,
                 ItemCondition.NEW), ITEM_ID);
@@ -151,6 +156,36 @@ class TransactionServiceTest {
 
         verify(transactionRepository).findByIdForUpdate(TX_ID);
         verify(transactionRepository, never()).findById(any());
+    }
+
+    @Test
+    void request_성공하면_거래_변경_이벤트를_남긴다() {
+        service.request(ROOM_ID, BUYER);
+
+        ArgumentCaptor<TransactionChangedEvent> captor = ArgumentCaptor.forClass(TransactionChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        assertThat(captor.getValue().transaction().status()).isEqualTo(TransactionStatus.REQUESTED);
+        assertThat(captor.getValue().transaction().chatRoomId()).isEqualTo(ROOM_ID);
+    }
+
+    @Test
+    void changeStatus_성공하면_바뀐_상태로_이벤트를_남긴다() {
+        givenTransaction(TransactionStatus.REQUESTED);
+
+        service.changeStatus(TX_ID, SELLER, TransactionStatus.IN_PROGRESS);
+
+        ArgumentCaptor<TransactionChangedEvent> captor = ArgumentCaptor.forClass(TransactionChangedEvent.class);
+        verify(eventPublisher).publishEvent(captor.capture());
+        assertThat(captor.getValue().transaction().status()).isEqualTo(TransactionStatus.IN_PROGRESS);
+    }
+
+    @Test
+    void changeStatus_거절되면_이벤트를_남기지_않는다() {
+        givenTransaction(TransactionStatus.REQUESTED);
+
+        assertThatThrownBy(() -> service.changeStatus(TX_ID, BUYER, TransactionStatus.IN_PROGRESS))
+                .isInstanceOf(BusinessException.class);
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test

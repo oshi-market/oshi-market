@@ -7,9 +7,11 @@ import com.oshimarket.domain.item.repository.ItemRepository;
 import com.oshimarket.domain.transaction.dto.TransactionResponse;
 import com.oshimarket.domain.transaction.entity.Transaction;
 import com.oshimarket.domain.transaction.entity.TransactionStatus;
+import com.oshimarket.domain.transaction.event.TransactionChangedEvent;
 import com.oshimarket.domain.transaction.repository.TransactionRepository;
 import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +29,14 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ItemRepository itemRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public TransactionService(TransactionRepository transactionRepository, ChatRoomRepository chatRoomRepository,
-                              ItemRepository itemRepository) {
+                              ItemRepository itemRepository, ApplicationEventPublisher eventPublisher) {
         this.transactionRepository = transactionRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.itemRepository = itemRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     /** POST /api/chatrooms/{chatRoomId}/transactions — 채팅방 구매자만 요청할 수 있다. */
@@ -53,7 +57,7 @@ public class TransactionService {
         item.startTransaction();
         Transaction saved = transactionRepository.save(
                 Transaction.request(item.getId(), chatRoom.getId(), chatRoom.getBuyerId(), chatRoom.getSellerId()));
-        return TransactionResponse.from(saved);
+        return publish(TransactionResponse.from(saved));
     }
 
     /** GET /api/transactions/{transactionId} — 거래 당사자만 조회 */
@@ -84,7 +88,13 @@ public class TransactionService {
         } else if (next == TransactionStatus.COMPLETED) {
             item.markSoldOut();
         }
-        return TransactionResponse.from(transaction);
+        return publish(TransactionResponse.from(transaction));
+    }
+
+    // 채팅방 알림은 커밋 뒤에 나간다(TransactionNotifier). 여기서는 이벤트만 남긴다
+    private TransactionResponse publish(TransactionResponse response) {
+        eventPublisher.publishEvent(new TransactionChangedEvent(response));
+        return response;
     }
 
     private Transaction checkParticipant(Optional<Transaction> found, Long memberId) {
