@@ -84,10 +84,22 @@ function ChatRoomPage() {
     setMessages((prev) => (prev.some((m) => m.id === message.id) ? prev : [...prev, message]));
   }, []);
 
+  // 상대방이 거래를 요청·수락·완료·취소하면 서버가 커밋 뒤에 알려 준다 → ↻ 없이 바로 반영
+  const handleTransaction = useCallback((next) => {
+    setTransaction((prev) => {
+      // 취소 뒤 새 요청처럼 다른 거래가 오면 더 최근 것만 받는다
+      if (prev && prev.id !== next.id && new Date(prev.createdAt) > new Date(next.createdAt)) {
+        return prev;
+      }
+      return next;
+    });
+  }, []);
+
   const handleSocketError = useCallback((message) => setSocketError(message), []);
 
   const { connected, send } = useChatSocket(room ? chatRoomId : null, {
     onMessage: handleMessage,
+    onTransaction: handleTransaction,
     onError: handleSocketError,
   });
 

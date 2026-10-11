@@ -61,7 +61,7 @@ function TradePanel({ chatRoomId, isBuyer, isSeller, transaction, onChange, onRe
         </button>
       )}
       <button type="button" className="btn btn-ghost btn-sm" disabled={isBusy} onClick={onRefresh}
-        title="상대방이 상태를 바꿨는지 다시 확인">
+        title="거래 상태 다시 확인 (상대방 변경은 실시간으로 반영됨)">
         ↻
       </button>
 
