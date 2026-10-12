@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
+import { openChatRoom } from '../chat/api';
 import { useAuth } from '../member/useAuth';
 import { deleteItem, fetchItem } from './api';
 import { CATEGORY_LABEL, CONDITION_LABEL, STATUS_LABEL } from './constants';
@@ -13,6 +14,8 @@ function ItemDetailPage() {
   const [item, setItem] = useState(null);
   const [error, setError] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const [chatError, setChatError] = useState('');
+  const [isOpeningChat, setIsOpeningChat] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -51,6 +54,24 @@ function ItemDetailPage() {
     } catch (err) {
       // 상세 화면은 그대로 두고 버튼 옆에만 안내 (예: 채팅/거래가 진행된 상품은 409)
       setDeleteError(getErrorMessage(err, '삭제에 실패했습니다.'));
+    }
+  }
+
+  // 이미 방이 있으면 그 방, 없으면 새 방 (두 번 눌러도 서버가 방 하나만 만든다)
+  async function handleOpenChat() {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setChatError('');
+    setIsOpeningChat(true);
+    try {
+      const { data } = await openChatRoom(itemId);
+      navigate(`/chat/${data.id}`);
+    } catch (err) {
+      setChatError(getErrorMessage(err, '채팅방을 열지 못했습니다.'));
+    } finally {
+      setIsOpeningChat(false);
     }
   }
 
@@ -127,6 +148,19 @@ function ItemDetailPage() {
           </Link>
         )}
         <p className="item-detail-description">{item.description || '설명이 없습니다.'}</p>
+
+        {!isOwner && (
+          <div className="item-detail-actions">
+            <button type="button" className="btn btn-primary btn-sm" onClick={handleOpenChat} disabled={isOpeningChat}>
+              채팅하기
+            </button>
+          </div>
+        )}
+        {!isOwner && chatError && (
+          <p className="form-error" role="alert">
+            {chatError}
+          </p>
+        )}
 
         {isOwner && (
           <div className="item-detail-actions">
