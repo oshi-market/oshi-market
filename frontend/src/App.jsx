@@ -5,6 +5,8 @@ import oshiHeroIcon from './assets/oshi-hero-icon.png';
 import oshiLogo from './assets/oshi-nav-logo.png';
 import CurationDetailPage from './features/curation/CurationDetailPage';
 import CurationListPage from './features/curation/CurationListPage';
+import ChatListPage from './features/chat/ChatListPage';
+import ChatRoomPage from './features/chat/ChatRoomPage';
 import HomeItemGrid from './features/item/HomeItemGrid';
 import ItemDetailPage from './features/item/ItemDetailPage';
 import ItemFormPage from './features/item/ItemFormPage';
@@ -17,18 +19,6 @@ import RequireAuth from './features/member/RequireAuth';
 import SignupPage from './features/member/SignupPage';
 import { useAuth } from './features/member/useAuth';
 import MyTransactionsPage from './features/transaction/MyTransactionsPage';
-
-/**
- * 아직 화면이 없는 도메인(상품/큐레이션/채팅/마이페이지) 라우트의 임시 자리표시자.
- * 각 담당자가 features/*에 실제 화면을 만들면 이 라우트를 교체한다.
- */
-function ComingSoon({ label }) {
-  return (
-    <div className="coming-soon">
-      <p>{label} 화면은 아직 준비 중입니다 🚧</p>
-    </div>
-  );
-}
 
 function SearchForm() {
   const [keyword, setKeyword] = useState('');
@@ -195,7 +185,22 @@ function App() {
           />
           <Route path="/curations" element={<CurationListPage />} />
           <Route path="/curations/:curationId" element={<CurationDetailPage />} />
-          <Route path="/chat" element={<ComingSoon label="채팅" />} />
+          <Route
+            path="/chat"
+            element={
+              <RequireAuth>
+                <ChatListPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/chat/:chatRoomId"
+            element={
+              <RequireAuth>
+                <ChatRoomPage />
+              </RequireAuth>
+            }
+          />
           <Route
             path="/my/items"
             element={

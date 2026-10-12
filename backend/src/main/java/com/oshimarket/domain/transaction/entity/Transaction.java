@@ -63,4 +63,33 @@ public class Transaction {
     public static Transaction request(Long itemId, Long chatRoomId, Long buyerId, Long sellerId) {
         return new Transaction(itemId, chatRoomId, buyerId, sellerId);
     }
+
+    // 상태 전이 규칙
+    //  REQUESTED  → IN_PROGRESS : 판매자만 (수락)
+    //  IN_PROGRESS → COMPLETED  : 구매자·판매자 둘 다 (완료 시각 기록)
+    //  REQUESTED/IN_PROGRESS → CANCELLED : 구매자·판매자 둘 다
+    //  COMPLETED/CANCELLED 에서는 더 이상 바꿀 수 없음
+    public boolean isParticipant(Long memberId) {
+        return buyerId.equals(memberId) || sellerId.equals(memberId);
+    }
+
+    public boolean canChangeTo(TransactionStatus next) {
+        return switch (status) {
+            case REQUESTED -> next == TransactionStatus.IN_PROGRESS || next == TransactionStatus.CANCELLED;
+            case IN_PROGRESS -> next == TransactionStatus.COMPLETED || next == TransactionStatus.CANCELLED;
+            case COMPLETED, CANCELLED -> false;
+        };
+    }
+
+    /** 호출 전에 canChangeTo로 확인한다. 완료 시에는 거래 시각을 남긴다. */
+    public void changeStatus(TransactionStatus next) {
+        this.status = next;
+        if (next == TransactionStatus.COMPLETED) {
+            this.transactedAt = LocalDateTime.now();
+        }
+    }
+
+    public boolean isOpen() {
+        return status == TransactionStatus.REQUESTED || status == TransactionStatus.IN_PROGRESS;
+    }
 }

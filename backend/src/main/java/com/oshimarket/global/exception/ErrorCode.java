@@ -33,7 +33,14 @@ public enum ErrorCode {
     IMAGE_STORAGE_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "사진 저장소가 설정되지 않았습니다. (CLOUDINARY_URL)"),
     CURATION_NOT_FOUND(HttpStatus.NOT_FOUND, "큐레이션 정보를 찾을 수 없습니다."),
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
-    CHAT_ROOM_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 참여한 채팅방만 이용할 수 있습니다.");
+    CHAT_ROOM_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 참여한 채팅방만 이용할 수 있습니다."),
+    CHAT_SELF_ITEM(HttpStatus.BAD_REQUEST, "본인이 등록한 상품에는 채팅을 시작할 수 없습니다."),
+    ITEM_NOT_SELLING(HttpStatus.CONFLICT, "판매 중인 상품이 아니어서 거래를 요청할 수 없습니다."),
+    TRANSACTION_NOT_FOUND(HttpStatus.NOT_FOUND, "거래를 찾을 수 없습니다."),
+    TRANSACTION_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 참여한 거래만 조회하거나 변경할 수 있습니다."),
+    TRANSACTION_REQUEST_FORBIDDEN(HttpStatus.FORBIDDEN, "채팅방의 구매자만 거래를 요청할 수 있습니다."),
+    TRANSACTION_ACCEPT_FORBIDDEN(HttpStatus.FORBIDDEN, "판매자만 거래 요청을 수락할 수 있습니다."),
+    INVALID_TRANSACTION_STATUS(HttpStatus.CONFLICT, "현재 거래 상태에서는 그 상태로 바꿀 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;

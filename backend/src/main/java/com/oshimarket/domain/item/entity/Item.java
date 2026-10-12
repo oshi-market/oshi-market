@@ -125,4 +125,24 @@ public class Item {
     public boolean isOwnedBy(Long memberId) {
         return this.sellerId.equals(memberId);
     }
+
+    // 거래 진행에 맞춰 상품 상태를 바꾸는 메서드 (TransactionService에서 사용)
+    public boolean isSelling() {
+        return this.status == ItemStatus.SELLING;
+    }
+
+    /** 거래 요청이 들어와 다른 사람이 거래를 걸 수 없게 잠근다. */
+    public void startTransaction() {
+        this.status = ItemStatus.IN_TRANSACTION;
+    }
+
+    /** 거래가 취소되면 다시 판매 중으로 되돌린다. */
+    public void reopen() {
+        this.status = ItemStatus.SELLING;
+    }
+
+    /** 거래가 완료되면 판매 완료. */
+    public void markSoldOut() {
+        this.status = ItemStatus.SOLD_OUT;
+    }
 }
