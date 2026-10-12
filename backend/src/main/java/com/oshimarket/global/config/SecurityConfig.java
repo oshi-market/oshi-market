@@ -2,6 +2,7 @@ package com.oshimarket.global.config;
 
 import com.oshimarket.global.security.JwtAuthenticationEntryPoint;
 import com.oshimarket.global.security.JwtAuthenticationFilter;
+import jakarta.servlet.DispatcherType;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -49,6 +50,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(handling -> handling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .authorizeHttpRequests(auth -> auth
+                        // 처리 못 한 예외는 서블릿이 /error로 다시 보내는데(ERROR 디스패치), 이걸 막으면
+                        // 진짜 원인(500 등) 대신 401 "인증이 필요합니다"가 나가서 열어둔다
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/ws-chat/**").permitAll()
