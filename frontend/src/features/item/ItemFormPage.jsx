@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
 import { useAuth } from '../member/useAuth';
 import { createItem, deleteItemImage, fetchItem, fetchWorks, updateItem, uploadItemImages } from './api';
@@ -68,6 +68,8 @@ function ItemFormPage() {
   const [error, setError] = useState(location.state?.error ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(isEdit);
+  // 수정 화면을 주소로 바로 연 경우에도 판매 중이 아닌 상품은 폼 대신 안내만 보여준다
+  const [isLocked, setIsLocked] = useState(false);
   const [works, setWorks] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
   const [removedImageIds, setRemovedImageIds] = useState([]);
@@ -96,6 +98,7 @@ function ItemFormPage() {
           condition: data.condition,
         };
         originalFormRef.current = original;
+        setIsLocked(data.status !== 'SELLING');
         const draft = readDraft(key, member?.id);
         setForm(draft ?? original);
         setIsDraftRestored(draft !== null);
@@ -178,6 +181,15 @@ function ItemFormPage() {
     return (
       <div className="page">
         <p className="muted">불러오는 중...</p>
+      </div>
+    );
+  }
+
+  if (isLocked) {
+    return (
+      <div className="page">
+        <p className="form-error">거래 중이거나 판매 완료된 상품은 수정할 수 없습니다.</p>
+        <Link to={`/items/${itemId}`}>상품으로 돌아가기</Link>
       </div>
     );
   }

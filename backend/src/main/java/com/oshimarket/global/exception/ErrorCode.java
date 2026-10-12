@@ -22,6 +22,7 @@ public enum ErrorCode {
     ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다."),
     ITEM_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 등록한 상품만 수정/삭제할 수 있습니다."),
     ITEM_HAS_CHAT_OR_TRANSACTION(HttpStatus.CONFLICT, "채팅이나 거래가 진행된 상품은 삭제할 수 없습니다."),
+    ITEM_NOT_EDITABLE(HttpStatus.CONFLICT, "거래 중이거나 판매 완료된 상품은 수정할 수 없습니다."),
     WORK_NOT_FOUND(HttpStatus.BAD_REQUEST, "등록되지 않은 작품입니다. 목록에서 선택해주세요."),
     IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "사진을 찾을 수 없습니다."),
     IMAGE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "사진은 상품당 최대 5장까지 등록할 수 있습니다."),

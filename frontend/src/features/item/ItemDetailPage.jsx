@@ -75,6 +75,8 @@ function ItemDetailPage() {
   }
 
   const isOwner = isAuthenticated && member?.id === item.sellerId;
+  // 거래 중이거나 판매 완료된 상품은 서버에서도 수정을 막는다 (ITEM_NOT_EDITABLE)
+  const isEditable = item.status === 'SELLING';
   const images = item.images ?? [];
   const selectedImage = images[selectedIndex] ?? images[0];
 
@@ -130,13 +132,18 @@ function ItemDetailPage() {
 
         {isOwner && (
           <div className="item-detail-actions">
-            <Link to={`/items/${item.id}/edit`} className="btn btn-ghost btn-sm">
-              수정
-            </Link>
+            {isEditable && (
+              <Link to={`/items/${item.id}/edit`} className="btn btn-ghost btn-sm">
+                수정
+              </Link>
+            )}
             <button type="button" className="btn btn-ghost btn-sm" onClick={handleDelete}>
               삭제
             </button>
           </div>
+        )}
+        {isOwner && !isEditable && (
+          <p className="muted">거래 중이거나 판매 완료된 상품은 수정할 수 없습니다.</p>
         )}
         {isOwner && deleteError && (
           <p className="form-error" role="alert">
