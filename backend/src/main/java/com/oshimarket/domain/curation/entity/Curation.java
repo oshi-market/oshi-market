@@ -43,4 +43,9 @@ public class Curation {
 
     @Column(name = "period_end")
     private LocalDate periodEnd;
+
+    /** 종료일이 지났으면 판매 종료. 종료일이 없으면 상시 판매로 본다. */
+    public boolean isEnded(LocalDate today) {
+        return periodEnd != null && periodEnd.isBefore(today);
+    }
 }

@@ -12,6 +12,7 @@ import com.oshimarket.domain.curation.repository.CurationRepository;
 import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +58,27 @@ class CurationServiceTest {
 
         assertThat(response.id()).isEqualTo(1L);
         assertThat(response.workTag()).isEqualTo("나루토");
+    }
+
+    @Test
+    void getCuration_종료일이_지났으면_판매종료로_표시한다() throws ReflectiveOperationException {
+        Curation curation = withId(sampleCuration(), 1L);
+        setField(curation, "periodEnd", LocalDate.now().minusDays(1));
+        when(curationRepository.findById(1L)).thenReturn(Optional.of(curation));
+
+        assertThat(curationService.getCuration(1L).ended()).isTrue();
+    }
+
+    @Test
+    void getCuration_종료일_당일이나_종료일이_없으면_판매중이다() throws ReflectiveOperationException {
+        Curation endsToday = withId(sampleCuration(), 1L);
+        setField(endsToday, "periodEnd", LocalDate.now());
+        Curation always = withId(sampleCuration(), 2L);
+        when(curationRepository.findById(1L)).thenReturn(Optional.of(endsToday));
+        when(curationRepository.findById(2L)).thenReturn(Optional.of(always));
+
+        assertThat(curationService.getCuration(1L).ended()).isFalse();
+        assertThat(curationService.getCuration(2L).ended()).isFalse();
     }
 
     @Test

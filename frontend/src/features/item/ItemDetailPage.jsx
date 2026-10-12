@@ -118,6 +118,14 @@ function ItemDetailPage() {
           {item.workTag && ` · ${item.workTag}`}
           {item.characterTag && ` · ${item.characterTag}`}
         </p>
+        {item.workTag && (
+          <Link
+            to={`/curations?work=${encodeURIComponent(item.workTag)}`}
+            className="item-detail-curation-link"
+          >
+            {item.workTag} 공식 구매처 보기 →
+          </Link>
+        )}
         <p className="item-detail-description">{item.description || '설명이 없습니다.'}</p>
 
         {isOwner && (

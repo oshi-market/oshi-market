@@ -6,6 +6,7 @@ import com.oshimarket.domain.curation.entity.Curation;
 import com.oshimarket.domain.curation.repository.CurationRepository;
 import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,8 +22,9 @@ public class CurationService {
     }
 
     public List<CurationResponse> search(CurationSearchCondition condition) {
+        LocalDate today = LocalDate.now();
         return curationRepository.search(condition.work(), condition.character()).stream()
-                .map(CurationResponse::from)
+                .map(curation -> CurationResponse.from(curation, today))
                 .toList();
     }
 
@@ -30,6 +32,6 @@ public class CurationService {
         Curation curation = curationRepository.findById(curationId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CURATION_NOT_FOUND));
 
-        return CurationResponse.from(curation);
+        return CurationResponse.from(curation, LocalDate.now());
     }
 }

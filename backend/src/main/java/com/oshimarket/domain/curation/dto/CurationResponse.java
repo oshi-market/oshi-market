@@ -10,10 +10,11 @@ public record CurationResponse(
         String storeName,
         String url,
         LocalDate periodStart,
-        LocalDate periodEnd
+        LocalDate periodEnd,
+        boolean ended
 ) {
 
-    public static CurationResponse from(Curation curation) {
+    public static CurationResponse from(Curation curation, LocalDate today) {
         return new CurationResponse(
                 curation.getId(),
                 curation.getWorkTag(),
@@ -21,7 +22,8 @@ public record CurationResponse(
                 curation.getStoreName(),
                 curation.getUrl(),
                 curation.getPeriodStart(),
-                curation.getPeriodEnd()
+                curation.getPeriodEnd(),
+                curation.isEnded(today)
         );
     }
 }
