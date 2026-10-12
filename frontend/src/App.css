@@ -705,9 +705,37 @@ textarea.input {
 }
 
 .curation-card-store {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 15px;
   font-weight: 600;
   margin-bottom: 4px;
+}
+
+.curation-card.is-ended {
+  opacity: 0.6;
+}
+
+.curation-filter .combobox {
+  width: 180px;
+}
+
+.curation-notice {
+  margin-top: 32px;
+  font-size: 13px;
+}
+
+.item-detail-curation-link {
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.item-detail-curation-link:hover {
+  text-decoration: underline;
 }
 
 .curation-detail-card {

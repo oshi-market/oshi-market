@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
+import { fetchWorks } from '../item/api';
+import WorkCombobox from '../item/WorkCombobox';
+import CurationNotice from './CurationNotice';
 import { fetchCurations } from './api';
 
 function CurationListPage() {
@@ -9,8 +12,24 @@ function CurationListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [works, setWorks] = useState([]);
+
   const work = searchParams.get('work') ?? '';
   const character = searchParams.get('character') ?? '';
+  // 작품 입력칸은 드롭다운(WorkCombobox)이라 제어 컴포넌트로 둔다. 상품 상세에서 ?work=로 들어오면 그 값으로 채움
+  const [workInput, setWorkInput] = useState(work);
+  const [prevWork, setPrevWork] = useState(work);
+  if (work !== prevWork) {
+    setPrevWork(work);
+    setWorkInput(work);
+  }
+
+  useEffect(() => {
+    fetchWorks()
+      .then(({ data }) => setWorks(data))
+      // 작품 목록을 못 불러와도 직접 입력으로 필터는 가능하니 조용히 넘어간다
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,7 +56,7 @@ function CurationListPage() {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const params = new URLSearchParams();
-    const nextWork = form.get('work')?.toString().trim();
+    const nextWork = workInput.trim();
     const nextCharacter = form.get('character')?.toString().trim();
     if (nextWork) params.set('work', nextWork);
     if (nextCharacter) params.set('character', nextCharacter);
@@ -51,7 +70,12 @@ function CurationListPage() {
       </div>
 
       <form className="curation-filter" onSubmit={handleFilterSubmit}>
-        <input className="input" name="work" defaultValue={work} placeholder="작품명" />
+        <WorkCombobox
+          value={workInput}
+          onChange={setWorkInput}
+          options={works.map((w) => w.name)}
+          placeholder="작품명 검색"
+        />
         <input className="input" name="character" defaultValue={character} placeholder="캐릭터명" />
         <button type="submit" className="btn btn-ghost btn-sm">
           필터 적용
@@ -66,8 +90,15 @@ function CurationListPage() {
 
       <div className="curation-grid">
         {curations.map((curation) => (
-          <Link to={`/curations/${curation.id}`} key={curation.id} className="curation-card">
-            <p className="curation-card-store">{curation.storeName}</p>
+          <Link
+            to={`/curations/${curation.id}`}
+            key={curation.id}
+            className={`curation-card${curation.ended ? ' is-ended' : ''}`}
+          >
+            <p className="curation-card-store">
+              {curation.storeName}
+              {curation.ended && <span className="badge badge-outline">판매 종료</span>}
+            </p>
             <p className="muted">
               {curation.workTag}
               {curation.characterTag && ` · ${curation.characterTag}`}
@@ -75,6 +106,8 @@ function CurationListPage() {
           </Link>
         ))}
       </div>
+
+      <CurationNotice />
     </div>
   );
 }

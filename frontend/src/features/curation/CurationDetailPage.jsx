@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
+import CurationNotice from './CurationNotice';
 import { fetchCuration } from './api';
 
 function CurationDetailPage() {
@@ -56,6 +57,7 @@ function CurationDetailPage() {
           {curation.characterTag && ` · ${curation.characterTag}`}
         </p>
         <h2>{curation.storeName}</h2>
+        {curation.ended && <p className="form-error">판매 기간이 종료된 구매처입니다.</p>}
         {(curation.periodStart || curation.periodEnd) && (
           <p className="muted">
             판매 기간: {curation.periodStart ?? '상시'} ~ {curation.periodEnd ?? '상시'}
@@ -65,6 +67,7 @@ function CurationDetailPage() {
           구매하러 가기
         </a>
       </div>
+      <CurationNotice />
     </div>
   );
 }
