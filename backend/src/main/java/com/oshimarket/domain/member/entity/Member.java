@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,6 +53,14 @@ public class Member {
 
     public static Member of(String email, String encodedPassword, String nickname) {
         return new Member(email, encodedPassword, nickname);
+    }
+
+    /**
+     * 이메일은 대소문자를 구분하지 않으므로 앞뒤 공백을 지우고 소문자로 맞춰 저장·조회한다.
+     * (Test@a.com과 test@a.com이 다른 계정으로 가입되는 것 방지. DB에도 같은 규칙의 CHECK 제약이 있음 — V6)
+     */
+    public static String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 
     /** 프로필 수정(MVP 범위: 닉네임만) — 1_MVP기획서.md "최소 필드만 구현". */

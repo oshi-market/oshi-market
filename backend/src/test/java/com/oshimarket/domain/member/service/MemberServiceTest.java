@@ -100,6 +100,43 @@ class MemberServiceTest {
     }
 
     @Test
+    void signup_이메일은_공백을_지우고_소문자로_저장한다() {
+        SignupRequest request = new SignupRequest("  Test@Example.COM ", "password123", "닉네임");
+        when(passwordEncoder.encode(request.password())).thenReturn("encoded-password");
+        when(memberRepository.save(any(Member.class)))
+                .thenAnswer(invocation -> withId(invocation.getArgument(0), 1L));
+
+        MemberResponse response = memberService.signup(request);
+
+        assertThat(response.email()).isEqualTo("test@example.com");
+        // 중복 검사도 정규화된 값으로 해서 Test@ / test@ 를 같은 이메일로 본다
+        verify(memberRepository).existsByEmail("test@example.com");
+    }
+
+    @Test
+    void signup_대소문자만_다른_이메일이_이미_있으면_예외가_발생한다() {
+        SignupRequest request = new SignupRequest("DUP@example.com", "password123", "닉네임");
+        when(memberRepository.existsByEmail("dup@example.com")).thenReturn(true);
+
+        assertThatThrownBy(() -> memberService.signup(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.DUPLICATE_EMAIL);
+        verify(memberRepository, never()).save(any(Member.class));
+    }
+
+    @Test
+    void login_대소문자가_달라도_같은_계정으로_로그인된다() {
+        LoginRequest request = new LoginRequest(" TEST@example.com", "password123");
+        Member member = withId(Member.of("test@example.com", "encoded-password", "닉네임"), 1L);
+        when(memberRepository.findByEmail("test@example.com")).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
+        when(jwtTokenProvider.createAccessToken(1L, "test@example.com")).thenReturn("access-token");
+
+        assertThat(memberService.login(request).accessToken()).isEqualTo("access-token");
+    }
+
+    @Test
     void login_존재하지_않는_이메일이면_예외가_발생한다() {
         LoginRequest request = new LoginRequest("unknown@example.com", "password123");
         when(memberRepository.findByEmail(request.email())).thenReturn(Optional.empty());
