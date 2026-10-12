@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
 import { openChatRoom } from '../chat/api';
 import { useAuth } from '../member/useAuth';
@@ -11,6 +11,7 @@ function ItemDetailPage() {
   const { itemId } = useParams();
   const { member, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [item, setItem] = useState(null);
   const [error, setError] = useState('');
   const [deleteError, setDeleteError] = useState('');
@@ -60,7 +61,8 @@ function ItemDetailPage() {
   // 이미 방이 있으면 그 방, 없으면 새 방 (두 번 눌러도 서버가 방 하나만 만든다)
   async function handleOpenChat() {
     if (!isAuthenticated) {
-      navigate('/login');
+      // 로그인 후 이 상품으로 돌아오게 한다 (LoginPage가 state.from을 읽음, #15)
+      navigate('/login', { state: { from: location } });
       return;
     }
     setChatError('');

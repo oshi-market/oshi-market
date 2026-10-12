@@ -67,7 +67,7 @@ public class TransactionService {
     }
 
     /**
-     * PATCH /api/transactions/{transactionId}/status — 수락(IN_PROGRESS)은 판매자만, 완료·취소는 당사자 둘 다.
+     * PATCH /api/transactions/{transactionId}/status — 수락(IN_PROGRESS)은 판매자만, 완료는 구매자만(물건을 받은 쪽이 확정), 취소는 당사자 둘 다.
      * 상품 상태도 함께 맞춘다: 취소 → SELLING, 완료 → SOLD_OUT.
      * 락 순서는 거래 → 상품. 거래를 잠근 뒤에 상태를 확인해야 동시 변경에서 두 번째 요청이 바뀐 상태를 본다.
      */
@@ -79,6 +79,9 @@ public class TransactionService {
         }
         if (next == TransactionStatus.IN_PROGRESS && !memberId.equals(transaction.getSellerId())) {
             throw new BusinessException(ErrorCode.TRANSACTION_ACCEPT_FORBIDDEN);
+        }
+        if (next == TransactionStatus.COMPLETED && !memberId.equals(transaction.getBuyerId())) {
+            throw new BusinessException(ErrorCode.TRANSACTION_COMPLETE_FORBIDDEN);
         }
         Item item = itemRepository.findByIdForUpdate(transaction.getItemId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));

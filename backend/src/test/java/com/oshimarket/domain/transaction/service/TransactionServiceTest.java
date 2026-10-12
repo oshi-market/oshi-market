@@ -112,6 +112,15 @@ class TransactionServiceTest {
     }
 
     @Test
+    void changeStatus_판매자는_완료할_수_없다() {
+        givenTransaction(TransactionStatus.IN_PROGRESS);
+
+        assertThatThrownBy(() -> service.changeStatus(TX_ID, SELLER, TransactionStatus.COMPLETED))
+                .extracting("errorCode").isEqualTo(ErrorCode.TRANSACTION_COMPLETE_FORBIDDEN);
+        assertThat(item.getStatus()).isNotEqualTo(ItemStatus.SOLD_OUT);
+    }
+
+    @Test
     void changeStatus_완료하면_완료시각을_남기고_상품을_판매완료로() {
         givenTransaction(TransactionStatus.IN_PROGRESS);
 

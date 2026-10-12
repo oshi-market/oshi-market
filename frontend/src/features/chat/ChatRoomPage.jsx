@@ -53,14 +53,26 @@ function ChatRoomPage() {
   const [isLoading, setIsLoading] = useState(true);
   const bottomRef = useRef(null);
   const transactionRef = useRef(null);
+  const roomRef = useRef(null);
+
+  useEffect(() => {
+    roomRef.current = room;
+  }, [room]);
 
   useEffect(() => {
     transactionRef.current = transaction;
   }, [transaction]);
 
+  // 거래가 바뀌면 상품 상태(판매 중/거래 중/판매 완료)도 바뀌므로 같이 다시 읽는다
+  const refreshItem = useCallback(() => {
+    const itemId = roomRef.current?.itemId;
+    if (itemId) fetchItem(itemId).then(({ data }) => setItem(data)).catch(() => {});
+  }, []);
+
   const refreshTransaction = useCallback(() => {
     findLatestTransaction(chatRoomId).then(setTransaction).catch(() => {});
-  }, [chatRoomId]);
+    refreshItem();
+  }, [chatRoomId, refreshItem]);
 
   useEffect(() => {
     let cancelled = false;
@@ -109,6 +121,7 @@ function ChatRoomPage() {
       return;
     }
     setTransaction(next);
+    refreshItem();
 
     const content = TRANSACTION_NOTICE[next.status];
     if (!content) return;
@@ -118,7 +131,7 @@ function ChatRoomPage() {
         ? list
         : [...list, { id, system: true, content, createdAt: new Date().toISOString() }],
     );
-  }, []);
+  }, [refreshItem]);
 
   const handleSocketError = useCallback((message) => setSocketError(message), []);
 
@@ -181,8 +194,12 @@ function ChatRoomPage() {
         chatRoomId={chatRoomId}
         isBuyer={isBuyer}
         isSeller={isSeller}
+        itemStatus={item?.status}
         transaction={transaction}
-        onChange={setTransaction}
+        onChange={(next) => {
+          setTransaction(next);
+          refreshItem();
+        }}
         onRefresh={refreshTransaction}
       />
 
