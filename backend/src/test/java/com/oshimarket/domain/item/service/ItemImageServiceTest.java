@@ -14,12 +14,14 @@ import com.oshimarket.domain.item.entity.Item;
 import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemCondition;
 import com.oshimarket.domain.item.entity.ItemImage;
+import com.oshimarket.domain.item.entity.ItemStatus;
 import com.oshimarket.domain.item.repository.ItemImageRepository;
 import com.oshimarket.domain.item.repository.ItemRepository;
 import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
 import com.oshimarket.global.storage.ImageStorage;
 import com.oshimarket.global.storage.StoredImage;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -157,6 +159,41 @@ class ItemImageServiceTest {
                 .extracting(e -> ((BusinessException) e).getErrorCode())
                 .isEqualTo(ErrorCode.IMAGE_NOT_FOUND);
         verify(imageStorage, never()).delete(any());
+    }
+
+    @Test
+    void upload_판매완료된_상품이면_사진을_올릴_수_없다() {
+        soldOutItem();
+
+        assertThatThrownBy(() -> itemImageService.upload(ITEM_ID, SELLER_ID, List.of(jpg("a"))))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ITEM_NOT_EDITABLE);
+        verify(imageStorage, never()).upload(any());
+    }
+
+    @Test
+    void delete_판매완료된_상품이면_사진을_지울_수_없다() {
+        soldOutItem();
+
+        assertThatThrownBy(() -> itemImageService.delete(ITEM_ID, 5L, SELLER_ID))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ITEM_NOT_EDITABLE);
+        verify(imageStorage, never()).delete(any());
+    }
+
+    /** 상태 변경은 거래 도메인이 담당해서, 테스트에서는 리플렉션으로 판매 완료 상태를 만든다. */
+    private void soldOutItem() {
+        Item item = Item.register(SELLER_ID, "피규어", null, ItemCategory.FIGURE, null, null, 10_000, ItemCondition.NEW);
+        try {
+            Field statusField = Item.class.getDeclaredField("status");
+            statusField.setAccessible(true);
+            statusField.set(item, ItemStatus.SOLD_OUT);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
+        when(itemRepository.findById(ITEM_ID)).thenReturn(Optional.of(item));
     }
 
     private static MultipartFile jpg(String name) {

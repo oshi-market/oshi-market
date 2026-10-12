@@ -16,6 +16,7 @@ import com.oshimarket.domain.item.entity.Item;
 import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemCondition;
 import com.oshimarket.domain.item.entity.ItemImage;
+import com.oshimarket.domain.item.entity.ItemStatus;
 import com.oshimarket.domain.item.repository.ItemImageRepository;
 import com.oshimarket.domain.item.repository.ItemRepository;
 import com.oshimarket.domain.work.repository.WorkRepository;
@@ -26,6 +27,8 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -158,6 +161,22 @@ class ItemServiceTest {
         assertThat(response.condition()).isEqualTo(ItemCondition.USED);
     }
 
+    @ParameterizedTest
+    @EnumSource(value = ItemStatus.class, names = {"IN_TRANSACTION", "SOLD_OUT"})
+    void update_판매중이_아니면_수정할_수_없다(ItemStatus status) {
+        Item item = withStatus(withId(sampleItem(), 1L), status);
+        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        ItemUpdateRequest request = new ItemUpdateRequest(
+                "수정된 제목", "설명", ItemCategory.FIGURE, "나루토", "우즈마키 나루토", 10_000, ItemCondition.USED
+        );
+
+        assertThatThrownBy(() -> itemService.update(1L, SELLER_ID, request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.ITEM_NOT_EDITABLE);
+        assertThat(item.getPrice()).isEqualTo(50_000);
+    }
+
     @Test
     void delete_소유자가_아니면_예외가_발생한다() {
         Item item = withId(sampleItem(), 1L);
@@ -243,6 +262,18 @@ class ItemServiceTest {
         return Item.register(
                 SELLER_ID, "나루토 피규어", "미개봉", ItemCategory.FIGURE, "나루토", "우즈마키 나루토", 50_000, ItemCondition.NEW
         );
+    }
+
+    /** 상태 변경은 거래 도메인(TransactionService)이 담당해서, 테스트에서는 리플렉션으로 상태를 맞춘다. */
+    private static Item withStatus(Item item, ItemStatus status) {
+        try {
+            Field statusField = Item.class.getDeclaredField("status");
+            statusField.setAccessible(true);
+            statusField.set(item, status);
+            return item;
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /** BIGSERIAL로 생성되는 id는 리플렉션으로 채워서 저장 이후 상태를 흉내낸다 (DB 없이 단위 테스트). */

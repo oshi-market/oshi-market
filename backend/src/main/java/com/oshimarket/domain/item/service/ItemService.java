@@ -82,6 +82,7 @@ public class ItemService {
     public ItemResponse update(Long itemId, Long memberId, ItemUpdateRequest request) {
         Item item = findItemOrThrow(itemId);
         validateOwner(item, memberId);
+        validateEditable(item);
         validateWork(request.workTag());
 
         item.update(
@@ -131,6 +132,12 @@ public class ItemService {
     private void validateOwner(Item item, Long memberId) {
         if (!item.isOwnedBy(memberId)) {
             throw new BusinessException(ErrorCode.ITEM_FORBIDDEN);
+        }
+    }
+
+    private void validateEditable(Item item) {
+        if (!item.isEditable()) {
+            throw new BusinessException(ErrorCode.ITEM_NOT_EDITABLE);
         }
     }
 }

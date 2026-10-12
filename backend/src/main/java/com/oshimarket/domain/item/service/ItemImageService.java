@@ -46,7 +46,7 @@ public class ItemImageService {
     /** 기존 사진 뒤에 이어 붙이고, 해당 상품의 전체 사진 목록을 반환. */
     @Transactional
     public List<ItemImageResponse> upload(Long itemId, Long memberId, List<MultipartFile> files) {
-        validateOwner(itemId, memberId);
+        validateEditableByOwner(itemId, memberId);
         List<ItemImage> existing = itemImageRepository.findByItemIdOrderBySortOrderAsc(itemId);
         validateFiles(files, existing.size());
 
@@ -72,7 +72,7 @@ public class ItemImageService {
 
     @Transactional
     public void delete(Long itemId, Long imageId, Long memberId) {
-        validateOwner(itemId, memberId);
+        validateEditableByOwner(itemId, memberId);
         ItemImage image = itemImageRepository.findByIdAndItemId(imageId, itemId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.IMAGE_NOT_FOUND));
 
@@ -85,11 +85,15 @@ public class ItemImageService {
         images.forEach(image -> deleteQuietly(image.getPublicId()));
     }
 
-    private void validateOwner(Long itemId, Long memberId) {
+    /** 판매자 본인 + 판매 중인 상품만 사진을 바꿀 수 있다 (상품 정보 수정과 같은 기준, Item#isEditable). */
+    private void validateEditableByOwner(Long itemId, Long memberId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ITEM_NOT_FOUND));
         if (!item.isOwnedBy(memberId)) {
             throw new BusinessException(ErrorCode.ITEM_FORBIDDEN);
+        }
+        if (!item.isEditable()) {
+            throw new BusinessException(ErrorCode.ITEM_NOT_EDITABLE);
         }
     }
 

@@ -114,6 +114,14 @@ public class Item {
         this.condition = condition;
     }
 
+    /**
+     * 판매 중일 때만 상품 정보·사진을 바꿀 수 있다. 거래 중이거나 판매 완료된 뒤에 바뀌면 구매자가 보고 거래한 내용과
+     * 달라지고, 내 거래 내역도 상품의 현재 정보를 보여주므로 같이 바뀐다.
+     */
+    public boolean isEditable() {
+        return this.status == ItemStatus.SELLING;
+    }
+
     public boolean isOwnedBy(Long memberId) {
         return this.sellerId.equals(memberId);
     }
