@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
 import { useAuth } from './useAuth';
 
 function LoginPage() {
-  const { login } = useAuth();
+  const { login, isSessionExpired } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // 로그인이 필요한 화면에서 넘어왔으면(RequireAuth) 로그인 후 그 화면으로 돌려보낸다
+  const from = location.state?.from;
+  const redirectTo = from ? `${from.pathname}${from.search ?? ''}` : '/';
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -21,7 +25,7 @@ function LoginPage() {
     setIsSubmitting(true);
     try {
       await login(form);
-      navigate('/');
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       setError(getErrorMessage(err, '로그인에 실패했습니다.'));
     } finally {
@@ -33,6 +37,7 @@ function LoginPage() {
     <div className="auth-page">
       <div className="card">
         <h2>로그인</h2>
+        {isSessionExpired && <p className="form-error">로그인이 만료되었습니다. 다시 로그인해주세요.</p>}
         <form onSubmit={handleSubmit}>
           <label className="field">
             이메일

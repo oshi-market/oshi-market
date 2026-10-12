@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { AUTH_EXPIRED_EVENT } from '../../api/client';
 import { fetchMe, login as loginApi, signup as signupApi, updateMe as updateMeApi } from './api';
 import { AuthContext } from './authContext';
 
@@ -13,16 +14,16 @@ export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem(TOKEN_KEY));
   const [member, setMember] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  // 토큰 만료로 자동 로그아웃됐는지. 로그인 화면에서 안내 문구를 보여주고, 다시 로그인하면 해제
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
 
   const loadMe = useCallback(async () => {
     try {
       const { data } = await fetchMe();
       setMember(data);
     } catch {
-      // 토큰이 만료/무효면 로그아웃 상태로 되돌린다.
-      localStorage.removeItem(TOKEN_KEY);
-      setAccessToken(null);
-      setMember(null);
+      // 토큰 만료/무효(401)는 client.js → AUTH_EXPIRED_EVENT로 이미 로그아웃 처리된다.
+      // 그 외(서버 재시작 중, 네트워크 끊김 등)는 토큰을 지우지 않고 아래 재시도에 맡긴다.
     }
   }, []);
 
@@ -36,10 +37,32 @@ export function AuthProvider({ children }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** 토큰은 있는데 내 정보를 못 불러온 상태(서버가 잠깐 꺼져 있었음 등)면 창으로 돌아올 때 다시 시도. */
+  useEffect(() => {
+    if (!accessToken || member) {
+      return;
+    }
+    window.addEventListener('focus', loadMe);
+    return () => window.removeEventListener('focus', loadMe);
+  }, [accessToken, member, loadMe]);
+
+  /** API 응답이 401이면(src/api/client.js) 로그아웃 상태로 되돌린다. 보호된 화면은 RequireAuth가 로그인으로 보낸다. */
+  useEffect(() => {
+    function handleExpired() {
+      localStorage.removeItem(TOKEN_KEY);
+      setAccessToken(null);
+      setMember(null);
+      setIsSessionExpired(true);
+    }
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, handleExpired);
+  }, []);
+
   async function login(credentials) {
     const { data } = await loginApi(credentials);
     localStorage.setItem(TOKEN_KEY, data.accessToken);
     setAccessToken(data.accessToken);
+    setIsSessionExpired(false);
     await loadMe();
   }
 
@@ -66,6 +89,7 @@ export function AuthProvider({ children }) {
     member,
     isAuthenticated: Boolean(accessToken),
     isLoading,
+    isSessionExpired,
     login,
     signup,
     logout,

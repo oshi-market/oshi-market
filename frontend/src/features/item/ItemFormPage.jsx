@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
+import { useAuth } from '../member/useAuth';
 import { createItem, deleteItemImage, fetchItem, fetchWorks, updateItem, uploadItemImages } from './api';
 import { CATEGORY_LABEL } from './constants';
 import ItemImagePicker from './ItemImagePicker';
@@ -16,12 +17,53 @@ const EMPTY_FORM = {
   condition: 'NEW',
 };
 
+/**
+ * 작성 중인 입력값 임시 저장(sessionStorage, 탭을 닫으면 사라짐). 저장 도중 로그인이 만료돼 로그인 화면으로
+ * 이동해도 다시 돌아오면 이어서 쓸 수 있게 한다. 같은 탭에서 다른 계정으로 로그인한 경우를 막으려고
+ * 작성자 memberId를 같이 저장한다. 사진 파일은 브라우저 보안상 저장할 수 없어 다시 선택해야 한다.
+ */
+function draftKey(itemId) {
+  return `itemFormDraft:${itemId ?? 'new'}`;
+}
+
+function readDraft(key, memberId) {
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(key));
+    return draft && draft.memberId === memberId ? draft.form : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(key, memberId, form) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ memberId, form }));
+  } catch {
+    // 저장소를 못 쓰는 환경(시크릿 모드 용량 제한 등)이면 임시 저장 없이 진행
+  }
+}
+
+function removeDraft(key) {
+  try {
+    sessionStorage.removeItem(key);
+  } catch {
+    // 위와 같음
+  }
+}
+
 function ItemFormPage() {
   const { itemId } = useParams();
   const isEdit = Boolean(itemId);
   const navigate = useNavigate();
   const location = useLocation();
-  const [form, setForm] = useState(EMPTY_FORM);
+  const { member } = useAuth();
+  const key = draftKey(itemId);
+  // 등록 화면은 처음부터 임시 저장본을 채우고, 수정 화면은 상품 정보를 불러온 뒤에 확인한다
+  const [form, setForm] = useState(() => (isEdit ? null : readDraft(key, member?.id)) ?? EMPTY_FORM);
+  const [isDraftRestored, setIsDraftRestored] = useState(() => !isEdit && readDraft(key, member?.id) !== null);
+  // 사용자가 직접 입력했을 때만 임시 저장 (수정 화면을 열기만 해도 저장본이 생기지 않게)
+  const [isDirty, setIsDirty] = useState(false);
+  const originalFormRef = useRef(EMPTY_FORM);
   // 등록 화면에서 사진만 실패해 수정 화면으로 넘어온 경우 그 에러를 이어서 보여준다
   const [error, setError] = useState(location.state?.error ?? '');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,7 +86,7 @@ function ItemFormPage() {
     }
     fetchItem(itemId)
       .then(({ data }) => {
-        setForm({
+        const original = {
           title: data.title,
           description: data.description ?? '',
           category: data.category,
@@ -52,16 +94,40 @@ function ItemFormPage() {
           characterTag: data.characterTag ?? '',
           price: String(data.price),
           condition: data.condition,
-        });
+        };
+        originalFormRef.current = original;
+        const draft = readDraft(key, member?.id);
+        setForm(draft ?? original);
+        setIsDraftRestored(draft !== null);
         setExistingImages(data.images ?? []);
       })
       .catch((err) => setError(getErrorMessage(err, '상품 정보를 불러오지 못했습니다.')))
       .finally(() => setIsLoading(false));
+    // 상품을 바꿔 열 때만 다시 불러온다 (key/member는 itemId가 같으면 바뀌지 않음)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itemId, isEdit]);
+
+  useEffect(() => {
+    if (isDirty && member?.id) {
+      saveDraft(key, member.id, form);
+    }
+  }, [form, isDirty, key, member?.id]);
+
+  function updateForm(changes) {
+    setForm((prev) => ({ ...prev, ...changes }));
+    setIsDirty(true);
+  }
 
   function handleChange(event) {
     const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    updateForm({ [name]: value });
+  }
+
+  function discardDraft() {
+    removeDraft(key);
+    setIsDirty(false);
+    setIsDraftRestored(false);
+    setForm(isEdit ? originalFormRef.current : EMPTY_FORM);
   }
 
   async function handleSubmit(event) {
@@ -84,6 +150,10 @@ function ItemFormPage() {
       setIsSubmitting(false);
       return;
     }
+
+    // 상품 정보는 저장됐으므로 임시 저장본 정리 (사진 단계가 실패해도 다시 쓸 필요 없음)
+    removeDraft(key);
+    setIsDirty(false);
 
     // 상품 저장 후 사진 반영. 사진만 실패하면 상품은 이미 저장됐으므로 수정 화면으로 보내 다시 시도하게 한다
     // (등록 화면에 머물면 다시 누를 때 상품이 중복 등록됨)
@@ -116,6 +186,14 @@ function ItemFormPage() {
     <div className="page item-form-page">
       <div className="card">
         <h2>{isEdit ? '상품 수정' : '상품 등록'}</h2>
+        {isDraftRestored && (
+          <div className="draft-notice">
+            <p>작성 중이던 내용을 불러왔습니다. 사진은 다시 선택해주세요.</p>
+            <button type="button" className="btn btn-ghost btn-sm" onClick={discardDraft}>
+              {isEdit ? '원래 내용으로' : '새로 작성'}
+            </button>
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <label className="field">
             상품명
@@ -165,7 +243,7 @@ function ItemFormPage() {
             <WorkCombobox
               id="item-work-tag"
               value={form.workTag}
-              onChange={(workTag) => setForm((prev) => ({ ...prev, workTag }))}
+              onChange={(workTag) => updateForm({ workTag })}
               options={works.map((work) => work.name)}
               placeholder="작품명을 검색해서 선택해주세요 (선택)"
             />

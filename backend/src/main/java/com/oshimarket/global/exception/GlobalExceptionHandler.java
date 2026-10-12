@@ -4,6 +4,8 @@ import com.oshimarket.global.common.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.core.PropertyReferenceException;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -75,5 +77,36 @@ public class GlobalExceptionHandler {
         log.warn("DB 제약 위반: {}", e.getMostSpecificCause().getMessage());
         return ResponseEntity.status(ErrorCode.DATA_CONFLICT.getStatus())
                 .body(ErrorResponse.of(ErrorCode.DATA_CONFLICT));
+    }
+
+    /** 페이지 조회의 sort에 없는 필드를 넣은 경우 (예: GET /api/items?sort=foo). */
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<ErrorResponse> handlePropertyReference(PropertyReferenceException e) {
+        return ResponseEntity.status(ErrorCode.INVALID_SORT.getStatus())
+                .body(ErrorResponse.of(ErrorCode.INVALID_SORT));
+    }
+
+    /**
+     * 위에서 처리하지 못한 모든 예외의 최후 안전망. 이게 없으면 예외가 /error로 넘어가 Spring 기본 포맷으로
+     * 응답돼서 프론트의 공통 에러 처리({code, message})가 깨진다.
+     * Spring MVC가 던지는 요청 오류(없는 주소 404, 지원 안 하는 메서드 405 등)는 원래 상태코드를 유지하고,
+     * 그 외에는 원인 파악용 로그를 남긴 뒤 500으로 응답한다 (내부 메시지는 응답에 노출하지 않음).
+     */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpected(Exception e) {
+        if (e instanceof org.springframework.web.ErrorResponse springError
+                && springError.getStatusCode().is4xxClientError()) {
+            HttpStatusCode status = springError.getStatusCode();
+            ErrorCode errorCode = switch (status.value()) {
+                case 404 -> ErrorCode.NOT_FOUND;
+                case 405 -> ErrorCode.METHOD_NOT_ALLOWED;
+                default -> ErrorCode.INVALID_INPUT;
+            };
+            return ResponseEntity.status(status).body(ErrorResponse.of(errorCode));
+        }
+
+        log.error("처리되지 않은 예외", e);
+        return ResponseEntity.status(ErrorCode.INTERNAL_SERVER_ERROR.getStatus())
+                .body(ErrorResponse.of(ErrorCode.INTERNAL_SERVER_ERROR));
     }
 }
