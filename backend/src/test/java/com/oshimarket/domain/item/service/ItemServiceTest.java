@@ -29,9 +29,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 
 class ItemServiceTest {
@@ -256,6 +259,38 @@ class ItemServiceTest {
 
         assertThat(page.getTotalElements()).isEqualTo(1);
         assertThat(page.getContent().get(0).title()).isEqualTo(item.getTitle());
+    }
+
+    @Test
+    void search_정렬_뒤에_id_내림차순을_붙여_순서를_고정한다() {
+        Pageable pageable = PageRequest.of(1, 20, Sort.by(Sort.Direction.ASC, "price"));
+        when(itemRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), pageable, 0));
+
+        itemService.search(emptyCondition(), pageable);
+
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        verify(itemRepository).findAll(any(Specification.class), captor.capture());
+        Pageable used = captor.getValue();
+        assertThat(used.getPageNumber()).isEqualTo(1);
+        assertThat(used.getPageSize()).isEqualTo(20);
+        assertThat(used.getSort()).containsExactly(Sort.Order.asc("price"), Sort.Order.desc("id"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"sellerId", "title", "description"})
+    void search_허용하지_않은_필드로_정렬하면_INVALID_SORT(String property) {
+        Pageable pageable = PageRequest.of(0, 20, Sort.by(property));
+
+        assertThatThrownBy(() -> itemService.search(emptyCondition(), pageable))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.INVALID_SORT);
+        verify(itemRepository, never()).findAll(any(Specification.class), any(Pageable.class));
+    }
+
+    private static ItemSearchCondition emptyCondition() {
+        return new ItemSearchCondition(null, null, null, null, null, null);
     }
 
     private static Item sampleItem() {
