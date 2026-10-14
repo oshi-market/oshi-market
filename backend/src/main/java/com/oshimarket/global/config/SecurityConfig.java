@@ -61,6 +61,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/curations/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/works/**").permitAll()
+                        // 판매자 공개 프로필만 허용 (숫자 id). /api/members/me는 계속 로그인 필요
+                        .requestMatchers(HttpMethod.GET, "/api/members/{memberId:\\d+}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -138,6 +138,10 @@ function ItemDetailPage() {
         </div>
         <h2>{item.title}</h2>
         <p className="item-detail-price">{item.price.toLocaleString()}원</p>
+        <p className="item-detail-seller">
+          판매자{' '}
+          <Link to={`/members/${item.sellerId}`}>{item.sellerNickname ?? '알 수 없는 판매자'}</Link>
+        </p>
         <p className="muted">
           {CATEGORY_LABEL[item.category] ?? item.category}
           {item.workTag && ` · ${item.workTag}`}

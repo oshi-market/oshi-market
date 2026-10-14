@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.oshimarket.domain.member.dto.LoginRequest;
+import com.oshimarket.domain.member.dto.MemberPublicResponse;
 import com.oshimarket.domain.member.dto.MemberResponse;
 import com.oshimarket.domain.member.dto.MemberUpdateRequest;
 import com.oshimarket.domain.member.dto.SignupRequest;
@@ -176,6 +177,31 @@ class MemberServiceTest {
         when(memberRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> memberService.getMe(999L))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.MEMBER_NOT_FOUND);
+    }
+
+    @Test
+    void getPublicProfile_닉네임과_가입일만_반환한다() {
+        Member member = withId(Member.of("test@example.com", "encoded-password", "닉네임"), 1L);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+
+        MemberPublicResponse response = memberService.getPublicProfile(1L);
+
+        assertThat(response.id()).isEqualTo(1L);
+        assertThat(response.nickname()).isEqualTo("닉네임");
+        // 로그인 없이 공개되는 응답이라 이메일 필드 자체가 없어야 한다
+        assertThat(MemberPublicResponse.class.getRecordComponents())
+                .extracting(component -> component.getName())
+                .containsExactly("id", "nickname", "createdAt");
+    }
+
+    @Test
+    void getPublicProfile_존재하지_않는_회원이면_예외가_발생한다() {
+        when(memberRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> memberService.getPublicProfile(999L))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
                 .isEqualTo(ErrorCode.MEMBER_NOT_FOUND);

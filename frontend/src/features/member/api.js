@@ -15,3 +15,8 @@ export function fetchMe() {
 export function updateMe({ nickname }) {
   return client.patch('/members/me', { nickname });
 }
+
+/** 다른 회원의 공개 프로필 (닉네임·가입일). 로그인 없이 조회 가능. */
+export function fetchMemberProfile(memberId) {
+  return client.get(`/members/${memberId}`);
+}

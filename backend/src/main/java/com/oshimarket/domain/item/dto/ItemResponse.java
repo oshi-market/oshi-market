@@ -11,6 +11,8 @@ import java.util.List;
 public record ItemResponse(
         Long id,
         Long sellerId,
+        /** 판매자 닉네임 (상품 상세·목록에서 "누가 파는지" 표시용). 판매자 정보를 못 찾으면 null. */
+        String sellerNickname,
         String title,
         String description,
         ItemCategory category,
@@ -26,11 +28,12 @@ public record ItemResponse(
 ) {
 
     /** images는 sortOrder 순으로 정렬된 이 상품의 사진. */
-    public static ItemResponse from(Item item, List<ItemImage> images) {
+    public static ItemResponse from(Item item, List<ItemImage> images, String sellerNickname) {
         List<ItemImageResponse> imageResponses = images.stream().map(ItemImageResponse::from).toList();
         return new ItemResponse(
                 item.getId(),
                 item.getSellerId(),
+                sellerNickname,
                 item.getTitle(),
                 item.getDescription(),
                 item.getCategory(),

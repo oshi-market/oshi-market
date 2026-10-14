@@ -9,6 +9,8 @@ import com.oshimarket.domain.item.entity.ItemImage;
 import com.oshimarket.domain.item.repository.ItemImageRepository;
 import com.oshimarket.domain.item.repository.ItemRepository;
 import com.oshimarket.domain.item.repository.ItemSpecifications;
+import com.oshimarket.domain.member.entity.Member;
+import com.oshimarket.domain.member.repository.MemberRepository;
 import com.oshimarket.domain.work.repository.WorkRepository;
 import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
@@ -36,17 +38,20 @@ public class ItemService {
     private final WorkRepository workRepository;
     private final ItemImageRepository itemImageRepository;
     private final ItemImageService itemImageService;
+    private final MemberRepository memberRepository;
 
     public ItemService(
             ItemRepository itemRepository,
             WorkRepository workRepository,
             ItemImageRepository itemImageRepository,
-            ItemImageService itemImageService
+            ItemImageService itemImageService,
+            MemberRepository memberRepository
     ) {
         this.itemRepository = itemRepository;
         this.workRepository = workRepository;
         this.itemImageRepository = itemImageRepository;
         this.itemImageService = itemImageService;
+        this.memberRepository = memberRepository;
     }
 
     @Transactional
@@ -65,7 +70,7 @@ public class ItemService {
         );
 
         // 사진은 등록 직후 별도 API(POST /api/items/{id}/images)로 올리므로 이 시점엔 항상 빈 목록
-        return ItemResponse.from(itemRepository.save(item), List.of());
+        return ItemResponse.from(itemRepository.save(item), List.of(), findNickname(sellerId));
     }
 
     public Page<ItemResponse> search(ItemSearchCondition condition, Pageable pageable) {
@@ -77,7 +82,17 @@ public class ItemService {
                 .stream()
                 .collect(Collectors.groupingBy(ItemImage::getItemId));
 
-        return items.map(item -> ItemResponse.from(item, imagesByItemId.getOrDefault(item.getId(), List.of())));
+        // 판매자 닉네임도 사진처럼 한 번에 모아서 조회 (상품마다 따로 조회하면 쿼리가 1+N번 나감)
+        List<Long> sellerIds = items.stream().map(Item::getSellerId).distinct().toList();
+        Map<Long, String> nicknameBySellerId = memberRepository.findAllById(sellerIds)
+                .stream()
+                .collect(Collectors.toMap(Member::getId, Member::getNickname));
+
+        return items.map(item -> ItemResponse.from(
+                item,
+                imagesByItemId.getOrDefault(item.getId(), List.of()),
+                nicknameBySellerId.get(item.getSellerId())
+        ));
     }
 
     /**
@@ -134,7 +149,15 @@ public class ItemService {
     }
 
     private ItemResponse toResponse(Item item) {
-        return ItemResponse.from(item, itemImageRepository.findByItemIdOrderBySortOrderAsc(item.getId()));
+        return ItemResponse.from(
+                item,
+                itemImageRepository.findByItemIdOrderBySortOrderAsc(item.getId()),
+                findNickname(item.getSellerId())
+        );
+    }
+
+    private String findNickname(Long memberId) {
+        return memberRepository.findById(memberId).map(Member::getNickname).orElse(null);
     }
 
     private Item findItemOrThrow(Long itemId) {

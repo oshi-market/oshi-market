@@ -1083,3 +1083,38 @@ textarea.input {
     width: 100%;
   }
 }
+
+.item-detail-seller {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.item-detail-seller a {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.member-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.member-profile-header h2 {
+  margin: 0 0 4px;
+}
+
+.member-profile-header p {
+  margin: 0;
+}
+
+.member-profile-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}

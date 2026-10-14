@@ -19,6 +19,8 @@ import com.oshimarket.domain.item.entity.ItemImage;
 import com.oshimarket.domain.item.entity.ItemStatus;
 import com.oshimarket.domain.item.repository.ItemImageRepository;
 import com.oshimarket.domain.item.repository.ItemRepository;
+import com.oshimarket.domain.member.entity.Member;
+import com.oshimarket.domain.member.repository.MemberRepository;
 import com.oshimarket.domain.work.repository.WorkRepository;
 import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
@@ -46,6 +48,7 @@ class ItemServiceTest {
     private WorkRepository workRepository;
     private ItemImageRepository itemImageRepository;
     private ItemImageService itemImageService;
+    private MemberRepository memberRepository;
     private ItemService itemService;
 
     @BeforeEach
@@ -54,7 +57,10 @@ class ItemServiceTest {
         workRepository = mock(WorkRepository.class);
         itemImageRepository = mock(ItemImageRepository.class);
         itemImageService = mock(ItemImageService.class);
-        itemService = new ItemService(itemRepository, workRepository, itemImageRepository, itemImageService);
+        memberRepository = mock(MemberRepository.class);
+        itemService = new ItemService(
+                itemRepository, workRepository, itemImageRepository, itemImageService, memberRepository
+        );
         when(workRepository.existsByName("나루토")).thenReturn(true);
     }
 
@@ -291,6 +297,46 @@ class ItemServiceTest {
 
     private static ItemSearchCondition emptyCondition() {
         return new ItemSearchCondition(null, null, null, null, null, null);
+    }
+
+    @Test
+    void getItem_판매자_닉네임을_함께_반환한다() {
+        Item item = withId(sampleItem(), 1L);
+        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(memberRepository.findById(SELLER_ID)).thenReturn(Optional.of(member(SELLER_ID, "판매자")));
+
+        ItemResponse response = itemService.getItem(1L);
+
+        assertThat(response.sellerNickname()).isEqualTo("판매자");
+    }
+
+    @Test
+    void search_판매자_닉네임은_한_번에_모아서_조회한다() {
+        Item first = withId(sampleItem(), 1L);
+        Item second = withId(sampleItem(), 2L);
+        Pageable pageable = PageRequest.of(0, 20);
+        when(itemRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(first, second), pageable, 2));
+        when(memberRepository.findAllById(List.of(SELLER_ID))).thenReturn(List.of(member(SELLER_ID, "판매자")));
+
+        var page = itemService.search(emptyCondition(), pageable);
+
+        assertThat(page.getContent()).extracting(ItemResponse::sellerNickname).containsExactly("판매자", "판매자");
+        // 같은 판매자 상품이 여러 개여도 판매자 조회는 1번, 상품마다 따로 조회하지 않음
+        verify(memberRepository).findAllById(List.of(SELLER_ID));
+        verify(memberRepository, never()).findById(any());
+    }
+
+    private static Member member(Long id, String nickname) {
+        Member member = Member.of(nickname + "@example.com", "encoded-password", nickname);
+        try {
+            Field idField = Member.class.getDeclaredField("id");
+            idField.setAccessible(true);
+            idField.set(member, id);
+            return member;
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private static Item sampleItem() {
