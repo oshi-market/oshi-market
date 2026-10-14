@@ -1112,7 +1112,7 @@ textarea.input {
   margin: 0;
 }
 
-.member-profile-tabs {
+.status-tabs {
   display: flex;
   align-items: center;
   gap: 8px;

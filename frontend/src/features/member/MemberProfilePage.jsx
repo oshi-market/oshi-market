@@ -109,7 +109,7 @@ function MemberProfilePage() {
         )}
       </div>
 
-      <div className="member-profile-tabs" role="tablist">
+      <div className="status-tabs" role="tablist">
         {Object.entries(TABS).map(([key, { label }]) => (
           <button
             type="button"
