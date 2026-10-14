@@ -14,9 +14,12 @@ import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,9 @@ import org.springframework.util.StringUtils;
 @Service
 @Transactional(readOnly = true)
 public class ItemService {
+
+    /** 상품 목록에서 정렬 가능한 필드. 그 외 필드(sellerId, title 등)로 정렬하면 INVALID_SORT(400). */
+    private static final Set<String> SORTABLE_PROPERTIES = Set.of("createdAt", "price");
 
     private final ItemRepository itemRepository;
     private final WorkRepository workRepository;
@@ -64,7 +70,7 @@ public class ItemService {
 
     public Page<ItemResponse> search(ItemSearchCondition condition, Pageable pageable) {
         Specification<Item> spec = ItemSpecifications.from(condition);
-        Page<Item> items = itemRepository.findAll(spec, pageable);
+        Page<Item> items = itemRepository.findAll(spec, withStableSort(pageable));
 
         List<Long> itemIds = items.stream().map(Item::getId).toList();
         Map<Long, List<ItemImage>> imagesByItemId = itemImageRepository.findByItemIdInOrderBySortOrderAsc(itemIds)
@@ -72,6 +78,20 @@ public class ItemService {
                 .collect(Collectors.groupingBy(ItemImage::getItemId));
 
         return items.map(item -> ItemResponse.from(item, imagesByItemId.getOrDefault(item.getId(), List.of())));
+    }
+
+    /**
+     * 허용된 필드만 정렬하게 막고, 마지막에 id 내림차순을 붙인다. 가격이 같은 상품이 여러 개면 DB가 순서를
+     * 보장하지 않아 페이지를 넘길 때 같은 상품이 두 번 나오거나 빠질 수 있어서, 항상 순서가 하나로 정해지게 한다.
+     */
+    private static Pageable withStableSort(Pageable pageable) {
+        for (Sort.Order order : pageable.getSort()) {
+            if (!SORTABLE_PROPERTIES.contains(order.getProperty())) {
+                throw new BusinessException(ErrorCode.INVALID_SORT);
+            }
+        }
+        Sort sort = pageable.getSort().and(Sort.by(Sort.Direction.DESC, "id"));
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
 
     public ItemResponse getItem(Long itemId) {

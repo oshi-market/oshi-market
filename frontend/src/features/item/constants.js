@@ -23,3 +23,10 @@ export const CATEGORY_LABEL = {
   MEDIA: '음반·블루레이·도서',
   ETC: '기타',
 };
+
+/** 상품 목록 정렬. 주소창에는 key(latest 등)만 저장하고, 서버에는 sort 값으로 보낸다(서버 허용 필드: createdAt, price). */
+export const SORT_OPTIONS = {
+  latest: { label: '최신순', sort: 'createdAt,desc' },
+  price_asc: { label: '가격 낮은순', sort: 'price,asc' },
+  price_desc: { label: '가격 높은순', sort: 'price,desc' },
+};

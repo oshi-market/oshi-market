@@ -1063,3 +1063,23 @@ textarea.input {
     width: 100%;
   }
 }
+
+.item-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.item-filter .input,
+.item-filter .combobox {
+  width: 160px;
+}
+
+@media (max-width: 480px) {
+  .item-filter .input,
+  .item-filter .combobox {
+    width: 100%;
+  }
+}
