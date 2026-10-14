@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
 import { fetchItems, fetchWorks } from './api';
-import ItemThumb from './ItemThumb';
+import ItemCard from './ItemCard';
 import WorkCombobox from './WorkCombobox';
-import { CATEGORY_LABEL, CONDITION_LABEL, SORT_OPTIONS, STATUS_LABEL } from './constants';
+import { CATEGORY_LABEL, SORT_OPTIONS, STATUS_LABEL } from './constants';
 
 const EMPTY_PAGE = { content: [], number: 0, totalPages: 0 };
 
@@ -185,19 +185,7 @@ function ItemListPage() {
 
       <div className="item-grid">
         {page.content.map((item) => (
-          <Link to={`/items/${item.id}`} key={item.id} className="item-card">
-            <ItemThumb url={item.thumbnailUrl} alt={item.title} />
-            <div className="item-card-body">
-              <p className="item-card-title">{item.title}</p>
-              <p className="item-card-price">{item.price.toLocaleString()}원</p>
-              <div className="item-card-meta">
-                <span className={`badge badge-status-${item.status.toLowerCase()}`}>
-                  {STATUS_LABEL[item.status]}
-                </span>
-                <span className="badge badge-outline">{CONDITION_LABEL[item.condition]}</span>
-              </div>
-            </div>
-          </Link>
+          <ItemCard key={item.id} item={item} />
         ))}
       </div>
 

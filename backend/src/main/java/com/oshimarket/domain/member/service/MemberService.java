@@ -1,6 +1,7 @@
 package com.oshimarket.domain.member.service;
 
 import com.oshimarket.domain.member.dto.LoginRequest;
+import com.oshimarket.domain.member.dto.MemberPublicResponse;
 import com.oshimarket.domain.member.dto.MemberResponse;
 import com.oshimarket.domain.member.dto.MemberUpdateRequest;
 import com.oshimarket.domain.member.dto.SignupRequest;
@@ -67,6 +68,13 @@ public class MemberService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
 
         return MemberResponse.from(member);
+    }
+
+    public MemberPublicResponse getPublicProfile(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return MemberPublicResponse.from(member);
     }
 
     @Transactional

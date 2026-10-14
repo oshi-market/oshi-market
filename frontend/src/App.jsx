@@ -14,6 +14,7 @@ import ItemListPage from './features/item/ItemListPage';
 import MyItemsPage from './features/item/MyItemsPage';
 import { AuthProvider } from './features/member/AuthProvider';
 import LoginPage from './features/member/LoginPage';
+import MemberProfilePage from './features/member/MemberProfilePage';
 import ProfilePage from './features/member/ProfilePage';
 import RequireAuth from './features/member/RequireAuth';
 import SignupPage from './features/member/SignupPage';
@@ -183,6 +184,7 @@ function App() {
               </RequireAuth>
             }
           />
+          <Route path="/members/:memberId" element={<MemberProfilePage />} />
           <Route path="/curations" element={<CurationListPage />} />
           <Route path="/curations/:curationId" element={<CurationDetailPage />} />
           <Route
