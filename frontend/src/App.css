@@ -1118,3 +1118,139 @@ textarea.input {
   gap: 8px;
   margin-bottom: 20px;
 }
+
+.seller-level {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.seller-level-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.seller-level-rating {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.exp-bar {
+  width: 100%;
+  max-width: 320px;
+}
+
+.exp-bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg-elevated-3);
+  overflow: hidden;
+}
+
+.exp-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.exp-bar-label {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+
+.member-profile-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.transaction-review {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px 4px;
+  font-size: 13px;
+}
+
+.review-stars-static {
+  color: var(--warning);
+  letter-spacing: 1px;
+}
+
+.review-stars-static .is-off {
+  color: var(--bg-elevated-3);
+}
+
+.review-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.review-form-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.review-stars {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.review-star {
+  padding: 0 2px;
+  border: none;
+  background: none;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--bg-elevated-3);
+  cursor: pointer;
+}
+
+.review-star.is-on {
+  color: var(--warning);
+}
+
+.review-star:focus-visible {
+  outline: 2px solid var(--accent);
+  border-radius: var(--radius-sm);
+}
+
+.review-notice {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--warning-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.review-notice ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.review-notice li + li {
+  margin-top: 2px;
+}
+
+.review-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

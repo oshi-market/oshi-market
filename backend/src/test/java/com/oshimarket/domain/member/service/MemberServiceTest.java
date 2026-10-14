@@ -54,7 +54,9 @@ class MemberServiceTest {
 
         assertThat(response.email()).isEqualTo(request.email());
         assertThat(response.nickname()).isEqualTo(request.nickname());
-        assertThat(response.trustScore()).isZero();
+        assertThat(response.sellerLevel().level()).isEqualTo(1);
+        assertThat(response.sellerLevel().exp()).isZero();
+        assertThat(response.sellerLevel().averageRating()).isNull();
     }
 
     @Test
@@ -194,7 +196,7 @@ class MemberServiceTest {
         // 로그인 없이 공개되는 응답이라 이메일 필드 자체가 없어야 한다
         assertThat(MemberPublicResponse.class.getRecordComponents())
                 .extracting(component -> component.getName())
-                .containsExactly("id", "nickname", "createdAt");
+                .containsExactly("id", "nickname", "createdAt", "sellerLevel");
     }
 
     @Test

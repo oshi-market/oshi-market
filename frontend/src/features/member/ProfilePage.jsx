@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getErrorMessage } from '../../api/errors';
+import { ExpBar, SellerLevelBadge } from './SellerLevel';
 import { useAuth } from './useAuth';
 
 function formatDate(isoString) {
@@ -52,8 +53,9 @@ function ProfilePage() {
             <p>{member.email}</p>
           </div>
           <div className="field">
-            신뢰도
-            <p>{member.trustScore}점</p>
+            판매자 레벨
+            <SellerLevelBadge sellerLevel={member.sellerLevel} />
+            <ExpBar sellerLevel={member.sellerLevel} />
           </div>
           <div className="field">
             가입일

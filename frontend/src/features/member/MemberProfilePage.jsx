@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
 import ItemCard from '../item/ItemCard';
 import { fetchItems } from '../item/api';
+import { ExpBar, SellerLevelBadge } from './SellerLevel';
 import { fetchMemberProfile } from './api';
 import { useAuth } from './useAuth';
 
@@ -95,8 +96,10 @@ function MemberProfilePage() {
   return (
     <div className="page">
       <div className="member-profile-header">
-        <div>
+        <div className="member-profile-summary">
           <h2>{profile ? profile.nickname : '불러오는 중...'}</h2>
+          {profile && <SellerLevelBadge sellerLevel={profile.sellerLevel} />}
+          {profile && <ExpBar sellerLevel={profile.sellerLevel} />}
           {profile && <p className="muted">가입일 {formatDate(profile.createdAt)}</p>}
         </div>
         {isMe && (

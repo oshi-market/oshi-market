@@ -41,7 +41,10 @@ public enum ErrorCode {
     TRANSACTION_REQUEST_FORBIDDEN(HttpStatus.FORBIDDEN, "채팅방의 구매자만 거래를 요청할 수 있습니다."),
     TRANSACTION_ACCEPT_FORBIDDEN(HttpStatus.FORBIDDEN, "판매자만 거래 요청을 수락할 수 있습니다."),
     TRANSACTION_COMPLETE_FORBIDDEN(HttpStatus.FORBIDDEN, "구매자만 거래를 완료할 수 있습니다."),
-    INVALID_TRANSACTION_STATUS(HttpStatus.CONFLICT, "현재 거래 상태에서는 그 상태로 바꿀 수 없습니다.");
+    INVALID_TRANSACTION_STATUS(HttpStatus.CONFLICT, "현재 거래 상태에서는 그 상태로 바꿀 수 없습니다."),
+    REVIEW_FORBIDDEN(HttpStatus.FORBIDDEN, "구매자만 별점을 남길 수 있습니다."),
+    REVIEW_NOT_COMPLETED(HttpStatus.CONFLICT, "거래가 완료된 뒤에 별점을 남길 수 있습니다."),
+    REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 별점을 남긴 거래입니다. 별점은 수정하거나 삭제할 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;

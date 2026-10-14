@@ -37,8 +37,16 @@ public class Member {
     @Column(nullable = false, unique = true, length = 50)
     private String nickname;
 
-    @Column(name = "trust_score", nullable = false)
-    private int trustScore;
+    /** 판매자 경험치. 구매자가 준 별점에 따라 오르내리고(최소 0), 레벨은 SellerLevel이 계산 (V7). */
+    @Column(name = "exp", nullable = false)
+    private int exp;
+
+    /** 받은 별점 개수·합계 (평균 별점 = ratingSum / reviewCount). */
+    @Column(name = "review_count", nullable = false)
+    private int reviewCount;
+
+    @Column(name = "rating_sum", nullable = false)
+    private int ratingSum;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -48,7 +56,6 @@ public class Member {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
-        this.trustScore = 0;
     }
 
     public static Member of(String email, String encodedPassword, String nickname) {
