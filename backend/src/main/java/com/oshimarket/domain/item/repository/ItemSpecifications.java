@@ -4,6 +4,7 @@ import com.oshimarket.domain.item.dto.ItemSearchCondition;
 import com.oshimarket.domain.item.entity.Item;
 import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemStatus;
+import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
@@ -18,6 +19,8 @@ import org.springframework.util.StringUtils;
  * 안전하게 조립한다.
  */
 public final class ItemSpecifications {
+
+    private static final char LIKE_ESCAPE = '\\';
 
     private ItemSpecifications() {
     }
@@ -68,11 +71,21 @@ public final class ItemSpecifications {
         return (root, query, cb) -> cb.equal(root.get("sellerId"), sellerId);
     }
 
+    /**
+     * 제목 부분일치를 대소문자 무시(ILIKE)로 검색한다. V4의 trigram 인덱스(idx_item_title_trgm)는 title ILIKE 형태에만
+     * 쓰이고, lower(title) LIKE로 쓰면 인덱스를 못 타고 전체를 훑는다(EXPLAIN으로 확인). 표준 JPA에는 ilike가 없어서
+     * Hibernate 확장(HibernateCriteriaBuilder)을 쓴다.
+     * 사용자가 입력한 %, _ 는 "아무 글자" 와일드카드가 아니라 글자 그대로 찾도록 이스케이프한다.
+     */
     private static Specification<Item> titleContains(String keyword) {
         if (!StringUtils.hasText(keyword)) {
             return Specification.unrestricted();
         }
-        String pattern = "%" + keyword.toLowerCase() + "%";
-        return (root, query, cb) -> cb.like(cb.lower(root.get("title")), pattern);
+        String pattern = "%" + escapeLikePattern(keyword) + "%";
+        return (root, query, cb) -> ((HibernateCriteriaBuilder) cb).ilike(root.get("title"), pattern, LIKE_ESCAPE);
+    }
+
+    static String escapeLikePattern(String keyword) {
+        return keyword.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }
