@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -76,7 +77,15 @@ public class ItemService {
     public Page<ItemResponse> search(ItemSearchCondition condition, Pageable pageable) {
         Specification<Item> spec = ItemSpecifications.from(condition);
         Page<Item> items = itemRepository.findAll(spec, withStableSort(pageable));
+        List<ItemResponse> responses = toResponses(items.getContent());
+        return new PageImpl<>(responses, items.getPageable(), items.getTotalElements());
+    }
 
+    /**
+     * 여러 상품을 응답으로 바꾼다. 사진·판매자 닉네임을 상품마다 따로 조회하지 않고 한 번에 모은다.
+     * 상품 목록과 찜 목록(WishlistService)이 함께 쓴다. 결과 순서는 items 순서 그대로.
+     */
+    public List<ItemResponse> toResponses(List<Item> items) {
         List<Long> itemIds = items.stream().map(Item::getId).toList();
         Map<Long, List<ItemImage>> imagesByItemId = itemImageRepository.findByItemIdInOrderBySortOrderAsc(itemIds)
                 .stream()
@@ -88,11 +97,13 @@ public class ItemService {
                 .stream()
                 .collect(Collectors.toMap(Member::getId, Member::getNickname));
 
-        return items.map(item -> ItemResponse.from(
-                item,
-                imagesByItemId.getOrDefault(item.getId(), List.of()),
-                nicknameBySellerId.get(item.getSellerId())
-        ));
+        return items.stream()
+                .map(item -> ItemResponse.from(
+                        item,
+                        imagesByItemId.getOrDefault(item.getId(), List.of()),
+                        nicknameBySellerId.get(item.getSellerId())
+                ))
+                .toList();
     }
 
     /**

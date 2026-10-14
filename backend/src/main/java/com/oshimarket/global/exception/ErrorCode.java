@@ -44,7 +44,8 @@ public enum ErrorCode {
     INVALID_TRANSACTION_STATUS(HttpStatus.CONFLICT, "현재 거래 상태에서는 그 상태로 바꿀 수 없습니다."),
     REVIEW_FORBIDDEN(HttpStatus.FORBIDDEN, "구매자만 별점을 남길 수 있습니다."),
     REVIEW_NOT_COMPLETED(HttpStatus.CONFLICT, "거래가 완료된 뒤에 별점을 남길 수 있습니다."),
-    REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 별점을 남긴 거래입니다. 별점은 수정하거나 삭제할 수 없습니다.");
+    REVIEW_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 별점을 남긴 거래입니다. 별점은 수정하거나 삭제할 수 없습니다."),
+    WISHLIST_SELF_ITEM(HttpStatus.BAD_REQUEST, "본인이 등록한 상품은 찜할 수 없습니다.");
 
     private final HttpStatus status;
     private final String message;

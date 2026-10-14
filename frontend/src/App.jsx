@@ -20,6 +20,7 @@ import RequireAuth from './features/member/RequireAuth';
 import SignupPage from './features/member/SignupPage';
 import { useAuth } from './features/member/useAuth';
 import MyTransactionsPage from './features/transaction/MyTransactionsPage';
+import MyWishlistPage from './features/wishlist/MyWishlistPage';
 
 function SearchForm() {
   const [keyword, setKeyword] = useState('');
@@ -92,6 +93,9 @@ function AccountMenu() {
           </Link>
           <Link to="/my/items" onClick={() => setOpen(false)}>
             내 상품
+          </Link>
+          <Link to="/my/wishlist" onClick={() => setOpen(false)}>
+            찜한 상품
           </Link>
           <Link to="/my/profile" onClick={() => setOpen(false)}>
             프로필
@@ -208,6 +212,14 @@ function App() {
             element={
               <RequireAuth>
                 <MyItemsPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/my/wishlist"
+            element={
+              <RequireAuth>
+                <MyWishlistPage />
               </RequireAuth>
             }
           />

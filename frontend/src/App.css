@@ -416,7 +416,19 @@ nav {
 .item-detail-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
   margin-top: 12px;
+}
+
+.wishlist-button.is-active {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.wishlist-count {
+  font-size: 0.875rem;
 }
 
 @media (max-width: 640px) {
