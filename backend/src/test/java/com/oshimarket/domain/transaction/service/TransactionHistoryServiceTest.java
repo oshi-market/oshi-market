@@ -12,6 +12,8 @@ import com.oshimarket.domain.item.entity.Item;
 import com.oshimarket.domain.item.entity.ItemCategory;
 import com.oshimarket.domain.item.entity.ItemCondition;
 import com.oshimarket.domain.item.repository.ItemRepository;
+import com.oshimarket.domain.review.entity.Review;
+import com.oshimarket.domain.review.repository.ReviewRepository;
 import com.oshimarket.domain.transaction.dto.TransactionHistoryResponse;
 import com.oshimarket.domain.transaction.dto.TransactionRole;
 import com.oshimarket.domain.transaction.entity.Transaction;
@@ -34,13 +36,30 @@ class TransactionHistoryServiceTest {
 
     private TransactionRepository transactionRepository;
     private ItemRepository itemRepository;
+    private ReviewRepository reviewRepository;
     private TransactionHistoryService transactionHistoryService;
 
     @BeforeEach
     void setUp() {
         transactionRepository = mock(TransactionRepository.class);
         itemRepository = mock(ItemRepository.class);
-        transactionHistoryService = new TransactionHistoryService(transactionRepository, itemRepository);
+        reviewRepository = mock(ReviewRepository.class);
+        transactionHistoryService = new TransactionHistoryService(transactionRepository, itemRepository, reviewRepository);
+    }
+
+    @Test
+    void 별점을_남긴_거래에는_별점을_붙이고_없으면_null() {
+        Transaction rated = withId(Transaction.request(10L, 100L, ME, OTHER_MEMBER_ID), 1L);
+        Transaction notRated = withId(Transaction.request(20L, 200L, ME, OTHER_MEMBER_ID), 2L);
+        when(transactionRepository.findByBuyerIdOrSellerId(ME, ME, PAGEABLE))
+                .thenReturn(new PageImpl<>(List.of(rated, notRated), PAGEABLE, 2));
+        when(reviewRepository.findByTransactionIdIn(List.of(1L, 2L))).thenReturn(List.of(Review.of(1L, ME, 5)));
+
+        Page<TransactionHistoryResponse> page = transactionHistoryService.getMyTransactions(ME, null, PAGEABLE);
+
+        assertThat(page.getContent()).extracting(TransactionHistoryResponse::rating).containsExactly(5, null);
+        // 별점도 상품처럼 페이지 단위로 한 번에 조회
+        verify(reviewRepository).findByTransactionIdIn(List.of(1L, 2L));
     }
 
     @Test

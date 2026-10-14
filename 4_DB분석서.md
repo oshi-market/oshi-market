@@ -29,7 +29,9 @@ DB는 원래 MySQL로 확정했었으나, 팀이 MySQL은 충분히 다뤄봤으
 | email | VARCHAR(255) | NOT NULL, UNIQUE |
 | password | VARCHAR(255) | NOT NULL (BCrypt 해시 저장, 평문 저장 금지) |
 | nickname | VARCHAR(50) | NOT NULL, UNIQUE |
-| trust_score | INT | NOT NULL, DEFAULT 0 |
+| exp | INT | NOT NULL, DEFAULT 0, CHECK (exp >= 0) — 판매자 경험치 (V7에서 trust_score 이름 변경) |
+| review_count | INT | NOT NULL, DEFAULT 0 — 받은 별점 개수 (V7) |
+| rating_sum | INT | NOT NULL, DEFAULT 0 — 받은 별점 합계, 평균 = rating_sum / review_count (V7) |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT CURRENT_TIMESTAMP |
 
 인덱스: `email`(UNIQUE, 로그인 조회), `nickname`(UNIQUE, 중복 가입 방지)

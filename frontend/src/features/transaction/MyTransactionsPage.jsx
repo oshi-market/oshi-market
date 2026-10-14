@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
+import ReviewForm from './ReviewForm';
 import { fetchMyTransactions } from './api';
 import { ROLE_LABEL, ROLE_TABS, TRANSACTION_STATUS_LABEL } from './constants';
 
@@ -15,6 +16,8 @@ function MyTransactionsPage() {
   const [page, setPage] = useState(EMPTY_PAGE);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  /** 별점 입력창을 펼친 거래 id (한 번에 하나만). */
+  const [reviewingId, setReviewingId] = useState(null);
 
   const role = searchParams.get('role') ?? undefined;
   const pageNumber = Number(searchParams.get('page') ?? 0);
@@ -43,6 +46,15 @@ function MyTransactionsPage() {
   /** 탭을 바꾸면 첫 페이지부터 다시 본다. */
   function selectRole(next) {
     setSearchParams(next ? { role: next } : {});
+  }
+
+  /** 별점 등록에 성공하면 다시 불러오지 않고 그 거래만 별점이 있는 상태로 바꾼다. */
+  function handleReviewDone(transactionId, rating) {
+    setPage((prev) => ({
+      ...prev,
+      content: prev.content.map((t) => (t.id === transactionId ? { ...t, rating } : t)),
+    }));
+    setReviewingId(null);
   }
 
   function goToPage(next) {
@@ -77,25 +89,58 @@ function MyTransactionsPage() {
       {!isLoading && !error && page.content.length === 0 && <p className="muted">거래 내역이 없습니다.</p>}
 
       <ul className="transaction-list">
-        {page.content.map((transaction) => (
-          <li key={transaction.id}>
-            <Link to={`/items/${transaction.itemId}`} className="transaction-row">
-              <span className="badge badge-outline">{ROLE_LABEL[transaction.role]}</span>
-              <div className="transaction-row-body">
-                <p className="transaction-row-title">{transaction.itemTitle ?? '삭제된 상품'}</p>
-                <p className="muted">
-                  {transaction.itemPrice != null && `${transaction.itemPrice.toLocaleString()}원 · `}
-                  {transaction.status === 'COMPLETED'
-                    ? `${formatDate(transaction.transactedAt)} 완료`
-                    : `${formatDate(transaction.createdAt)} 요청`}
-                </p>
-              </div>
-              <span className={`badge badge-transaction-${transaction.status.toLowerCase()}`}>
-                {TRANSACTION_STATUS_LABEL[transaction.status]}
-              </span>
-            </Link>
-          </li>
-        ))}
+        {page.content.map((transaction) => {
+          const canReview =
+            transaction.role === 'BUY' && transaction.status === 'COMPLETED' && transaction.rating == null;
+          return (
+            <li key={transaction.id}>
+              <Link to={`/items/${transaction.itemId}`} className="transaction-row">
+                <span className="badge badge-outline">{ROLE_LABEL[transaction.role]}</span>
+                <div className="transaction-row-body">
+                  <p className="transaction-row-title">{transaction.itemTitle ?? '삭제된 상품'}</p>
+                  <p className="muted">
+                    {transaction.itemPrice != null && `${transaction.itemPrice.toLocaleString()}원 · `}
+                    {transaction.status === 'COMPLETED'
+                      ? `${formatDate(transaction.transactedAt)} 완료`
+                      : `${formatDate(transaction.createdAt)} 요청`}
+                  </p>
+                </div>
+                <span className={`badge badge-transaction-${transaction.status.toLowerCase()}`}>
+                  {TRANSACTION_STATUS_LABEL[transaction.status]}
+                </span>
+              </Link>
+              {transaction.status === 'COMPLETED' && (
+                <div className="transaction-review">
+                  {transaction.rating != null && (
+                    <span className="muted">
+                      {transaction.role === 'BUY' ? '내가 준 별점' : '받은 별점'}{' '}
+                      <span className="review-stars-static" aria-label={`${transaction.rating}점`}>
+                        {'★'.repeat(transaction.rating)}
+                        <span className="is-off">{'★'.repeat(5 - transaction.rating)}</span>
+                      </span>
+                    </span>
+                  )}
+                  {canReview && reviewingId !== transaction.id && (
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={() => setReviewingId(transaction.id)}
+                    >
+                      별점 주기
+                    </button>
+                  )}
+                  {canReview && reviewingId === transaction.id && (
+                    <ReviewForm
+                      transactionId={transaction.id}
+                      onDone={(rating) => handleReviewDone(transaction.id, rating)}
+                      onCancel={() => setReviewingId(null)}
+                    />
+                  )}
+                </div>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       {page.totalPages > 1 && (

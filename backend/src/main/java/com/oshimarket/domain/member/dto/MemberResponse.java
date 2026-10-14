@@ -7,7 +7,7 @@ public record MemberResponse(
         Long id,
         String email,
         String nickname,
-        int trustScore,
+        SellerLevelResponse sellerLevel,
         LocalDateTime createdAt
 ) {
 
@@ -16,7 +16,7 @@ public record MemberResponse(
                 member.getId(),
                 member.getEmail(),
                 member.getNickname(),
-                member.getTrustScore(),
+                SellerLevelResponse.from(member),
                 member.getCreatedAt()
         );
     }

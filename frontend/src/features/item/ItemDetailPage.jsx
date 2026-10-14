@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getErrorMessage } from '../../api/errors';
 import { openChatRoom } from '../chat/api';
+import { SellerLevelBadge } from '../member/SellerLevel';
+import { fetchMemberProfile } from '../member/api';
 import { useAuth } from '../member/useAuth';
 import { deleteItem, fetchItem } from './api';
 import { CATEGORY_LABEL, CONDITION_LABEL, STATUS_LABEL } from './constants';
@@ -19,6 +21,7 @@ function ItemDetailPage() {
   const [isOpeningChat, setIsOpeningChat] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [sellerLevel, setSellerLevel] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -43,6 +46,21 @@ function ItemDetailPage() {
       cancelled = true;
     };
   }, [itemId]);
+
+  // 판매자 레벨·별점은 공개 프로필에서 가져온다. 못 불러와도 상품 상세는 그대로 보여준다
+  const sellerId = item?.sellerId;
+  useEffect(() => {
+    if (sellerId == null) return undefined;
+    let cancelled = false;
+    fetchMemberProfile(sellerId)
+      .then(({ data }) => {
+        if (!cancelled) setSellerLevel(data.sellerLevel);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [sellerId]);
 
   async function handleDelete() {
     if (!window.confirm('이 상품을 삭제할까요?')) {
@@ -140,7 +158,8 @@ function ItemDetailPage() {
         <p className="item-detail-price">{item.price.toLocaleString()}원</p>
         <p className="item-detail-seller">
           판매자{' '}
-          <Link to={`/members/${item.sellerId}`}>{item.sellerNickname ?? '알 수 없는 판매자'}</Link>
+          <Link to={`/members/${item.sellerId}`}>{item.sellerNickname ?? '알 수 없는 판매자'}</Link>{' '}
+          <SellerLevelBadge sellerLevel={sellerLevel} />
         </p>
         <p className="muted">
           {CATEGORY_LABEL[item.category] ?? item.category}
