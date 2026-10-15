@@ -5,6 +5,7 @@ import { openChatRoom } from '../chat/api';
 import { SellerLevelBadge } from '../member/SellerLevel';
 import { fetchMemberProfile } from '../member/api';
 import { useAuth } from '../member/useAuth';
+import WishlistButton from '../wishlist/WishlistButton';
 import { deleteItem, fetchItem } from './api';
 import { CATEGORY_LABEL, CONDITION_LABEL, STATUS_LABEL } from './constants';
 import { imageUrl } from './imageUrl';
@@ -181,6 +182,7 @@ function ItemDetailPage() {
             <button type="button" className="btn btn-primary btn-sm" onClick={handleOpenChat} disabled={isOpeningChat}>
               채팅하기
             </button>
+            <WishlistButton itemId={item.id} isOwner={false} />
           </div>
         )}
         {!isOwner && chatError && (
@@ -191,6 +193,7 @@ function ItemDetailPage() {
 
         {isOwner && (
           <div className="item-detail-actions">
+            <WishlistButton itemId={item.id} isOwner />
             {isEditable && (
               <Link to={`/items/${item.id}/edit`} className="btn btn-ghost btn-sm">
                 수정

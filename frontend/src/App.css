@@ -416,7 +416,48 @@ nav {
 .item-detail-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
   margin-top: 12px;
+}
+
+.wishlist-button.is-active {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.wishlist-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.wishlist-heart {
+  flex-shrink: 0;
+}
+
+.wishlist-button.is-active .wishlist-heart {
+  animation: wishlist-pop 0.3s ease-out;
+}
+
+@keyframes wishlist-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wishlist-button.is-active .wishlist-heart {
+    animation: none;
+  }
+}
+
+.wishlist-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 640px) {
