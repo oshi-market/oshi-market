@@ -35,6 +35,7 @@ public enum ErrorCode {
     CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
     CHAT_ROOM_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 참여한 채팅방만 이용할 수 있습니다."),
     CHAT_SELF_ITEM(HttpStatus.BAD_REQUEST, "본인이 등록한 상품에는 채팅을 시작할 수 없습니다."),
+    CHAT_ITEM_SOLD_OUT(HttpStatus.CONFLICT, "판매 완료된 상품에는 새 채팅을 시작할 수 없습니다."),
     ITEM_NOT_SELLING(HttpStatus.CONFLICT, "판매 중인 상품이 아니어서 거래를 요청할 수 없습니다."),
     TRANSACTION_NOT_FOUND(HttpStatus.NOT_FOUND, "거래를 찾을 수 없습니다."),
     TRANSACTION_FORBIDDEN(HttpStatus.FORBIDDEN, "본인이 참여한 거래만 조회하거나 변경할 수 있습니다."),

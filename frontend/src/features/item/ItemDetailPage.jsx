@@ -185,6 +185,9 @@ function ItemDetailPage() {
             <WishlistButton itemId={item.id} isOwner={false} />
           </div>
         )}
+        {!isOwner && item.status === 'SOLD_OUT' && (
+          <p className="muted">판매 완료된 상품이에요. 전에 나눈 채팅만 열 수 있어요.</p>
+        )}
         {!isOwner && chatError && (
           <p className="form-error" role="alert">
             {chatError}

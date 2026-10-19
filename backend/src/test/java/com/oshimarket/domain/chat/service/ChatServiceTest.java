@@ -86,6 +86,28 @@ class ChatServiceTest {
     }
 
     @Test
+    void openChatRoom_판매_완료_상품이면_새_방은_거절한다() {
+        soldOut();
+        when(chatRoomRepository.findByItemIdAndBuyerId(ITEM_ID, BUYER)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> chatService.openChatRoom(ITEM_ID, BUYER))
+                .extracting("errorCode").isEqualTo(ErrorCode.CHAT_ITEM_SOLD_OUT);
+        verify(chatRoomRepository, never()).insertIfAbsent(any(), any(), any());
+    }
+
+    @Test
+    void openChatRoom_판매_완료_상품이어도_이미_있던_방은_돌려준다() {
+        soldOut();
+        ChatRoom existing = withId(ChatRoom.create(ITEM_ID, BUYER, SELLER), 100L);
+        when(chatRoomRepository.findByItemIdAndBuyerId(ITEM_ID, BUYER)).thenReturn(Optional.of(existing));
+
+        ChatService.OpenResult result = chatService.openChatRoom(ITEM_ID, BUYER);
+
+        assertThat(result.created()).isFalse();
+        assertThat(result.room().getId()).isEqualTo(100L);
+    }
+
+    @Test
     void isParticipant_구매자_판매자만_참() {
         when(chatRoomRepository.findById(100L))
                 .thenReturn(Optional.of(withId(ChatRoom.create(ITEM_ID, BUYER, SELLER), 100L)));
@@ -94,6 +116,10 @@ class ChatServiceTest {
         assertThat(chatService.isParticipant(100L, SELLER)).isTrue();
         assertThat(chatService.isParticipant(100L, 99L)).isFalse();
         assertThat(chatService.isParticipant(999L, BUYER)).isFalse();
+    }
+
+    private void soldOut() {
+        itemRepository.findById(ITEM_ID).orElseThrow().markSoldOut();
     }
 
     private static <T> T withId(T entity, Long id) {

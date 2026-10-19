@@ -39,6 +39,7 @@ public class ChatService {
 
     // POST /api/items/{itemId}/chatrooms
     //  - 본인 상품이면 거절, 이미 방이 있으면 그 방 반환, 없으면 생성
+    //  - 판매 완료(SOLD_OUT) 상품은 새 방만 막는다. 이미 대화하던 사람(거래한 구매자 포함)은 기존 방을 계속 연다
     //  - 같은 사람이 '채팅하기'를 동시에 두 번 눌러도 INSERT ... ON CONFLICT DO NOTHING이라 방은 하나만 생긴다
     @Transactional
     public OpenResult openChatRoom(Long itemId, Long buyerId) {
@@ -50,6 +51,9 @@ public class ChatService {
         Optional<ChatRoom> existing = chatRoomRepository.findByItemIdAndBuyerId(itemId, buyerId);
         if (existing.isPresent()) {
             return new OpenResult(ChatRoomResponse.from(existing.get()), false);
+        }
+        if (item.isSoldOut()) {
+            throw new BusinessException(ErrorCode.CHAT_ITEM_SOLD_OUT);
         }
         boolean created = chatRoomRepository.insertIfAbsent(itemId, buyerId, item.getSellerId()) == 1;
         ChatRoom room = chatRoomRepository.findByItemIdAndBuyerId(itemId, buyerId)
