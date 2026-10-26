@@ -40,10 +40,18 @@ class ChatMessageControllerTest {
     }
 
     @Test
-    void 그_밖의_예외는_내부_메시지_대신_공통_문구를_보낸다() {
+    void DB_제약_위반은_DATA_CONFLICT_문구를_보낸다() {
         controller.handleException(
                 new DataIntegrityViolationException("ERROR: insert or update on table \"message\" violates ..."),
                 accessor);
+
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/errors"),
+                eq(ErrorCode.DATA_CONFLICT.getMessage()));
+    }
+
+    @Test
+    void 그_밖의_예외는_내부_메시지_대신_공통_문구를_보낸다() {
+        controller.handleException(new IllegalStateException("내부 상태 오류: table member ..."), accessor);
 
         verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/errors"),
                 eq(ErrorCode.INTERNAL_SERVER_ERROR.getMessage()));

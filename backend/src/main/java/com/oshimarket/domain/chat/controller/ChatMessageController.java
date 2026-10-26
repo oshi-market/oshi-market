@@ -7,6 +7,7 @@ import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -42,8 +43,9 @@ public class ChatMessageController {
 
     /**
      * 메시지 처리 중 예외를 보낸 사람에게만 알린다(/user/queue/errors).
-     * BusinessException은 사용자에게 보여 줄 문구라 그대로 보내고, 그 밖의 예외(DB 오류 등)는 메시지에
-     * SQL·테이블 이름이 들어갈 수 있어서 로그에만 남기고 공통 문구로 바꾼다 (GlobalExceptionHandler와 같은 기준).
+     * - BusinessException: 사용자에게 보여 줄 문구라 그대로 보낸다.
+     * - DB 제약 위반: REST(GlobalExceptionHandler)처럼 DATA_CONFLICT 문구로 바꾸고 WARN 로그를 남긴다.
+     * - 그 밖의 예외: SQL 등 내부 정보가 섞일 수 있어 ERROR 로그에만 남기고 공통 문구로 바꾼다.
      */
     @MessageExceptionHandler
     public void handleException(Exception e, SimpMessageHeaderAccessor accessor) {
@@ -51,6 +53,9 @@ public class ChatMessageController {
         String message;
         if (e instanceof BusinessException) {
             message = e.getMessage();
+        } else if (e instanceof DataIntegrityViolationException) {
+            log.warn("DB 제약 위반", e);
+            message = ErrorCode.DATA_CONFLICT.getMessage();
         } else {
             log.error("채팅 메시지 처리 중 예외", e);
             message = ErrorCode.INTERNAL_SERVER_ERROR.getMessage();

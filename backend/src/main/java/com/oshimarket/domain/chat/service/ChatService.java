@@ -74,6 +74,14 @@ public class ChatService {
             throw new BusinessException(ErrorCode.CHAT_ROOM_FORBIDDEN);
         }
 
+        if (content == null || content.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "메시지 내용을 입력해주세요.");
+        }
+
+        if (content.length() > 1000) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "메시지는 1000자까지 보낼 수 있습니다.");
+        }
+
         Message message = Message.create(chatRoomId, senderId, content);
         Message saved = messageRepository.save(message);
         return ChatMessageResponse.from(saved);
