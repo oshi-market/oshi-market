@@ -16,6 +16,25 @@ Windows/Mac 혼용 2인 팀 기준. 기획 문서는 [`README.md`](./README.md)�
    - 상품 사진 업로드까지 쓰려면 `backend/.env.example`을 복사해 `backend/.env`를 만들고 `CLOUDINARY_URL`을 채움 (값은 팀원에게 개인 채널로 받기, git에 올리지 말 것). 없어도 서버는 뜨고 사진 업로드만 안 됨
 4. 프론트엔드 실행: `cd frontend && npm install && cp .env.example .env && npm run dev`
 
+## Claude Code 플러그인 (선택)
+
+Claude Code를 쓰는 경우에만 해당. 안 쓰면 무시해도 됨.
+
+- 저장소 폴더에서 `claude`를 실행하면 `.claude/settings.json`의 추천 플러그인 4개 설치 안내가 뜸. 원하는 것만 설치하면 됨
+
+  | 플러그인 | 하는 일 |
+  |---|---|
+  | `superpowers` | 기획·계획·TDD·디버깅 순서를 잡아 주는 작업 습관 모음 |
+  | `code-review` | `/code-review <PR번호>`로 PR 리뷰 |
+  | `commit-commands` | `/commit`, `/commit-push-pr` 커밋·PR 자동화 |
+  | `security-guidance` | 코드 수정 시 보안 문제 경고 |
+
+- 쓰기 싫은 플러그인은 `.claude/settings.local.json`(git에 안 올라감)에서 끄면 됨
+  ```json
+  { "enabledPlugins": { "superpowers@claude-plugins-official": false } }
+  ```
+- 그 밖에 필요하면 각자 설치: `/plugin install frontend-design@claude-plugins-official`(화면 디자인), `context7@claude-plugins-official`(라이브러리 최신 문서), `playwright@claude-plugins-official`(브라우저로 화면 확인)
+
 ## 프로젝트 구조
 
 ```
