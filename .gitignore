@@ -24,3 +24,6 @@ backend/.gradle/
 
 # 개인 작업 노트 (팀 공유 아님)
 .local-notes/
+
+# Claude Code 개인 설정 (공유 설정은 .claude/settings.json)
+.claude/settings.local.json
