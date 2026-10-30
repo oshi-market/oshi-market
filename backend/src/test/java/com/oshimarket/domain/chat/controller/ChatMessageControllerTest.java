@@ -11,7 +11,10 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.messaging.converter.MessageConversionException;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
@@ -47,6 +50,26 @@ class ChatMessageControllerTest {
 
         verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/errors"),
                 eq(ErrorCode.DATA_CONFLICT.getMessage()));
+    }
+
+    @Test
+    void 깨진_JSON은_INVALID_INPUT_문구를_보낸다() {
+        controller.handleException(new MessageConversionException("Could not read JSON: Unexpected character ..."),
+                accessor);
+
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/errors"),
+                eq(ErrorCode.INVALID_INPUT.getMessage()));
+    }
+
+    @Test
+    void 숫자가_아닌_방_번호는_INVALID_INPUT_문구를_보낸다() {
+        controller.handleException(
+                new ConversionFailedException(TypeDescriptor.valueOf(String.class), TypeDescriptor.valueOf(Long.class),
+                        "abc", new NumberFormatException("For input string: \"abc\"")),
+                accessor);
+
+        verify(messagingTemplate).convertAndSendToUser(eq("2"), eq("/queue/errors"),
+                eq(ErrorCode.INVALID_INPUT.getMessage()));
     }
 
     @Test
