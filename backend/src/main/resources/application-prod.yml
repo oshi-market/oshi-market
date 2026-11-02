@@ -1,0 +1,23 @@
+# 배포용 설정 (SPRING_PROFILES_ACTIVE=prod 일 때 application.yml 위에 덮어씀)
+# 로컬 개발은 그대로 application.yml의 기본값으로 돌아간다.
+
+# 비밀값은 기본값 없이 환경변수로만 받는다.
+# 공개 저장소의 기본값(local-...)으로 배포되면 누구나 JWT를 위조할 수 있어서,
+# 값이 없으면 서버가 아예 뜨지 않게 하는 것이 목적이다.
+spring:
+  datasource:
+    password: ${DB_PASSWORD}
+
+jwt:
+  secret: ${JWT_SECRET}
+
+# 외부에는 health만. prometheus·info는 요청 수·JVM 정보 등 서버 구조가 드러나서 닫는다.
+# (Nginx도 /api·/ws-chat만 넘기므로 actuator는 외부에서 직접 닿지 않는다 — 이중 안전장치)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
