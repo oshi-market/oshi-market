@@ -54,7 +54,9 @@ public class SecurityConfig {
                         // 진짜 원인(500 등) 대신 401 "인증이 필요합니다"가 나가서 열어둔다
                         .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/actuator/**").permitAll()
+                        // 공개는 상태 확인(health)만. 나머지 actuator는 로그인한 회원에게도 열지 않는다
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/**").denyAll()
                         .requestMatchers("/ws-chat/**").permitAll()
                         // 상품 목록/검색/상세, 큐레이션, 작품 목록 조회는 비로그인 사용자도 가능 (1_MVP기획서.md 서비스 흐름:
                         // 둘러보기는 누구나, 등록/수정/삭제 등 실제 액션부터 로그인 필요)
