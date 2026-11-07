@@ -21,7 +21,8 @@ spring:
     locations: classpath:db/migration
 
 jwt:
-  secret: ${JWT_SECRET:local-dev-only-secret-change-me-please-32bytes+}
+  # 기본값을 두지 않는다. 공개 저장소의 기본 키로 운영 서버가 뜨면 누구나 토큰을 위조할 수 있어서, 값이 없으면 기동을 막는다.
+  secret: ${JWT_SECRET}
   access-token-expiration-ms: 3600000
 
 # 사진 저장소. 값이 없으면 서버는 뜨지만 사진 업로드 시 IMAGE_STORAGE_NOT_CONFIGURED 에러.
@@ -33,7 +34,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        include: health
   endpoint:
     health:
-      show-details: when-authorized
+      # 역할 구분이 없어 when-authorized면 로그인한 회원 누구나 DB 등 내부 구성을 보게 된다
+      show-details: never

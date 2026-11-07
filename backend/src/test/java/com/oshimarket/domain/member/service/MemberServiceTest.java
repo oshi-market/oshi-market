@@ -92,7 +92,7 @@ class MemberServiceTest {
         Member member = withId(Member.of(request.email(), "encoded-password", "닉네임"), 1L);
         when(memberRepository.findByEmail(request.email())).thenReturn(Optional.of(member));
         when(passwordEncoder.matches(request.password(), member.getPassword())).thenReturn(true);
-        when(jwtTokenProvider.createAccessToken(member.getId(), member.getEmail())).thenReturn("access-token");
+        when(jwtTokenProvider.createAccessToken(member.getId())).thenReturn("access-token");
         when(jwtTokenProvider.getAccessTokenExpirationMs()).thenReturn(3_600_000L);
 
         TokenResponse response = memberService.login(request);
@@ -134,7 +134,7 @@ class MemberServiceTest {
         Member member = withId(Member.of("test@example.com", "encoded-password", "닉네임"), 1L);
         when(memberRepository.findByEmail("test@example.com")).thenReturn(Optional.of(member));
         when(passwordEncoder.matches("password123", "encoded-password")).thenReturn(true);
-        when(jwtTokenProvider.createAccessToken(1L, "test@example.com")).thenReturn("access-token");
+        when(jwtTokenProvider.createAccessToken(1L)).thenReturn("access-token");
 
         assertThat(memberService.login(request).accessToken()).isEqualTo("access-token");
     }

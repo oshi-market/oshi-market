@@ -59,7 +59,7 @@ public class MemberService {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        String accessToken = jwtTokenProvider.createAccessToken(member.getId(), member.getEmail());
+        String accessToken = jwtTokenProvider.createAccessToken(member.getId());
         return TokenResponse.of(accessToken, jwtTokenProvider.getAccessTokenExpirationMs());
     }
 
