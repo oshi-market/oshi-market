@@ -131,6 +131,10 @@ public class Item {
         return this.status == ItemStatus.SELLING;
     }
 
+    public boolean isSoldOut() {
+        return this.status == ItemStatus.SOLD_OUT;
+    }
+
     /** 거래 요청이 들어와 다른 사람이 거래를 걸 수 없게 잠근다. */
     public void startTransaction() {
         this.status = ItemStatus.IN_TRANSACTION;
