@@ -22,15 +22,18 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final LoginAttemptLimiter loginAttemptLimiter;
 
     public MemberService(
             MemberRepository memberRepository,
             PasswordEncoder passwordEncoder,
-            JwtTokenProvider jwtTokenProvider
+            JwtTokenProvider jwtTokenProvider,
+            LoginAttemptLimiter loginAttemptLimiter
     ) {
         this.memberRepository = memberRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.loginAttemptLimiter = loginAttemptLimiter;
     }
 
     @Transactional
@@ -52,12 +55,15 @@ public class MemberService {
     }
 
     public TokenResponse login(LoginRequest request) {
-        Member member = memberRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS));
+        loginAttemptLimiter.checkAllowed(request.email());
 
-        if (!passwordEncoder.matches(request.password(), member.getPassword())) {
+        Member member = memberRepository.findByEmail(request.email()).orElse(null);
+        // 없는 이메일과 틀린 비밀번호를 똑같이 실패로 센다 (가입 여부가 드러나지 않게)
+        if (member == null || !passwordEncoder.matches(request.password(), member.getPassword())) {
+            loginAttemptLimiter.recordFailure(request.email());
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
+        loginAttemptLimiter.recordSuccess(request.email());
 
         String accessToken = jwtTokenProvider.createAccessToken(member.getId(), member.getEmail());
         return TokenResponse.of(accessToken, jwtTokenProvider.getAccessTokenExpirationMs());

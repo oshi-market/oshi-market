@@ -38,7 +38,7 @@ class MemberServiceTest {
         memberRepository = mock(MemberRepository.class);
         passwordEncoder = mock(PasswordEncoder.class);
         jwtTokenProvider = mock(JwtTokenProvider.class);
-        memberService = new MemberService(memberRepository, passwordEncoder, jwtTokenProvider);
+        memberService = new MemberService(memberRepository, passwordEncoder, jwtTokenProvider, new LoginAttemptLimiter());
     }
 
     @Test
@@ -161,6 +161,38 @@ class MemberServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
                 .isEqualTo(ErrorCode.INVALID_CREDENTIALS);
+    }
+
+    @Test
+    void login_여러_번_틀려_막히면_맞는_비밀번호여도_비밀번호를_확인하지_않고_거절한다() {
+        Member member = withId(Member.of("test@example.com", "encoded-password", "닉네임"), 1L);
+        when(memberRepository.findByEmail("test@example.com")).thenReturn(Optional.of(member));
+        when(passwordEncoder.matches("wrong-password", "encoded-password")).thenReturn(false);
+        for (int i = 0; i < LoginAttemptLimiter.MAX_FAILURES; i++) {
+            assertThatThrownBy(() -> memberService.login(new LoginRequest("test@example.com", "wrong-password")))
+                    .extracting(e -> ((BusinessException) e).getErrorCode())
+                    .isEqualTo(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        assertThatThrownBy(() -> memberService.login(new LoginRequest("test@example.com", "password123")))
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.TOO_MANY_LOGIN_ATTEMPTS);
+        verify(passwordEncoder, never()).matches("password123", "encoded-password");
+    }
+
+    @Test
+    void login_없는_이메일도_실패_횟수를_세서_막는다() {
+        when(memberRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
+        LoginRequest request = new LoginRequest("unknown@example.com", "password123");
+        for (int i = 0; i < LoginAttemptLimiter.MAX_FAILURES; i++) {
+            assertThatThrownBy(() -> memberService.login(request))
+                    .extracting(e -> ((BusinessException) e).getErrorCode())
+                    .isEqualTo(ErrorCode.INVALID_CREDENTIALS);
+        }
+
+        assertThatThrownBy(() -> memberService.login(request))
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.TOO_MANY_LOGIN_ATTEMPTS);
     }
 
     @Test
