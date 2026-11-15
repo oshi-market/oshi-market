@@ -39,6 +39,7 @@ public class ChatService {
 
     // POST /api/items/{itemId}/chatrooms
     //  - 본인 상품이면 거절, 이미 방이 있으면 그 방 반환, 없으면 생성
+    //  - 판매 완료(SOLD_OUT) 상품은 새 방만 막는다. 이미 대화하던 사람(거래한 구매자 포함)은 기존 방을 계속 연다
     //  - 같은 사람이 '채팅하기'를 동시에 두 번 눌러도 INSERT ... ON CONFLICT DO NOTHING이라 방은 하나만 생긴다
     @Transactional
     public OpenResult openChatRoom(Long itemId, Long buyerId) {
@@ -50,6 +51,9 @@ public class ChatService {
         Optional<ChatRoom> existing = chatRoomRepository.findByItemIdAndBuyerId(itemId, buyerId);
         if (existing.isPresent()) {
             return new OpenResult(ChatRoomResponse.from(existing.get()), false);
+        }
+        if (item.isSoldOut()) {
+            throw new BusinessException(ErrorCode.CHAT_ITEM_SOLD_OUT);
         }
         boolean created = chatRoomRepository.insertIfAbsent(itemId, buyerId, item.getSellerId()) == 1;
         ChatRoom room = chatRoomRepository.findByItemIdAndBuyerId(itemId, buyerId)
@@ -72,6 +76,14 @@ public class ChatService {
 
         if (!senderId.equals(chatRoom.getBuyerId()) && !senderId.equals(chatRoom.getSellerId())) {
             throw new BusinessException(ErrorCode.CHAT_ROOM_FORBIDDEN);
+        }
+
+        if (content == null || content.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "메시지 내용을 입력해주세요.");
+        }
+
+        if (content.length() > 1000) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "메시지는 1000자까지 보낼 수 있습니다.");
         }
 
         Message message = Message.create(chatRoomId, senderId, content);
