@@ -17,8 +17,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 /**
  * STOMP 인증·인가.
- * - CONNECT: Authorization: Bearer 헤더의 JWT 검증 → userId를 세션 속성과 Principal에 저장
+ * - CONNECT/STOMP: Authorization: Bearer 헤더의 JWT 검증 → userId를 세션 속성과 Principal에 저장
  *   (Principal 이름 = userId. convertAndSendToUser(userId, "/queue/errors")가 Principal 이름으로 배달되기 때문)
+ *   STOMP 프레임은 CONNECT와 같은 연결 요청이라, 함께 검사하지 않으면 토큰 없이 연결된다.
  * - SUBSCRIBE: 허용 목록 방식. /sub/chat/{chatRoomId}(그 방 구매자·판매자만)와 /user/queue/errors만 허용.
  *   SimpleBroker는 구독 주소의 * / ** 패턴을 받아 주므로, 모양이 다른 주소를 통과시키면 /sub/chat/* 로 모든 방을 엿볼 수 있다.
  * - SEND: /pub/** 만 허용. /sub/** 로 직접 보내면 컨트롤러 검사 없이 브로커가 바로 뿌려 남의 방에 가짜 메시지를 넣을 수 있다.
@@ -45,7 +46,7 @@ public class StompAuthInterceptor implements ChannelInterceptor {
         if (accessor == null) {
             return message;
         }
-        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+        if (StompCommand.CONNECT.equals(accessor.getCommand()) || StompCommand.STOMP.equals(accessor.getCommand())) {
             authenticate(accessor);
         } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
             authorizeSubscribe(accessor);

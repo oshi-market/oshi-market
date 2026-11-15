@@ -6,11 +6,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.oshimarket.global.security.JwtTokenProvider;
+import io.jsonwebtoken.JwtException;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -48,6 +50,29 @@ class StompAuthInterceptorTest {
         assertThat(session.get("userId")).isEqualTo(ME);
         assertThat(accessor.getUser()).isNotNull();
         assertThat(accessor.getUser().getName()).isEqualTo("2");
+    }
+
+    @Test
+    void STOMP_프레임도_토큰이_맞으면_userId와_Principal을_설정한다() {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.STOMP);
+        accessor.setNativeHeader("Authorization", "Bearer good");
+        Map<String, Object> session = new HashMap<>();
+        accessor.setSessionAttributes(session);
+
+        interceptor.preSend(message(accessor), channel);
+
+        assertThat(session.get("userId")).isEqualTo(ME);
+        assertThat(accessor.getUser()).isNotNull();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = StompCommand.class, names = {"CONNECT", "STOMP"})
+    void 연결_요청에_토큰이_없으면_거절한다(StompCommand command) {
+        StompHeaderAccessor accessor = StompHeaderAccessor.create(command);
+        accessor.setSessionAttributes(new HashMap<>());
+
+        assertThatThrownBy(() -> interceptor.preSend(message(accessor), channel))
+                .isInstanceOf(JwtException.class);
     }
 
     @Test

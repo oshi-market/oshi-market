@@ -35,13 +35,13 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String createAccessToken(Long memberId, String email) {
+    /** JWT 내용은 암호화되지 않아 누구나 읽을 수 있으므로, 인증에 필요한 회원 번호만 담는다. */
+    public String createAccessToken(Long memberId) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + accessTokenExpirationMs);
 
         return Jwts.builder()
                 .subject(String.valueOf(memberId))
-                .claim("email", email)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(key)
