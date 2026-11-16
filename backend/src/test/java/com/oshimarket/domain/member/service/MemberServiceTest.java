@@ -73,6 +73,30 @@ class MemberServiceTest {
     }
 
     @Test
+    void signup_비밀번호가_72바이트를_넘으면_인코딩하지_않고_거절한다() {
+        // 한글 25자 = 75바이트. 글자 수(64자 이하) 검사는 통과하는 길이
+        SignupRequest request = new SignupRequest("test@example.com", "가".repeat(25), "닉네임");
+
+        assertThatThrownBy(() -> memberService.signup(request))
+                .isInstanceOf(BusinessException.class)
+                .extracting(e -> ((BusinessException) e).getErrorCode())
+                .isEqualTo(ErrorCode.INVALID_INPUT);
+
+        verify(passwordEncoder, never()).encode(anyString());
+        verify(memberRepository, never()).save(any());
+    }
+
+    @Test
+    void signup_비밀번호가_정확히_72바이트면_가입된다() {
+        SignupRequest request = new SignupRequest("test@example.com", "가".repeat(24), "닉네임");
+        when(passwordEncoder.encode(request.password())).thenReturn("encoded-password");
+        when(memberRepository.save(any(Member.class)))
+                .thenAnswer(invocation -> withId(invocation.getArgument(0), 1L));
+
+        assertThat(memberService.signup(request).email()).isEqualTo("test@example.com");
+    }
+
+    @Test
     void signup_닉네임이_중복이면_예외가_발생한다() {
         SignupRequest request = new SignupRequest("test@example.com", "password123", "중복닉네임");
         when(memberRepository.existsByEmail(request.email())).thenReturn(false);

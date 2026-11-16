@@ -11,6 +11,7 @@ import com.oshimarket.domain.member.repository.MemberRepository;
 import com.oshimarket.global.exception.BusinessException;
 import com.oshimarket.global.exception.ErrorCode;
 import com.oshimarket.global.security.JwtTokenProvider;
+import java.nio.charset.StandardCharsets;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 public class MemberService {
+
+    static final int MAX_PASSWORD_BYTES = 72;
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
@@ -38,6 +41,11 @@ public class MemberService {
 
     @Transactional
     public MemberResponse signup(SignupRequest request) {
+        // BCrypt는 72바이트까지만 처리해서 넘으면 encode가 예외를 던진다(500). 한글은 한 글자가 3바이트라
+        // SignupRequest의 @Size(64자)만으로는 못 막아서 바이트 수를 따로 확인한다
+        if (request.password().getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
+            throw new BusinessException(ErrorCode.INVALID_INPUT, "비밀번호가 너무 깁니다. 한글만 쓰면 24자까지 입력할 수 있습니다.");
+        }
         if (memberRepository.existsByEmail(request.email())) {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
         }
