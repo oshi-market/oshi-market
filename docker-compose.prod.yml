@@ -2,12 +2,20 @@
 # 사용법: .env.prod.example을 .env.prod로 복사해 값을 채운 뒤
 #   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 # 외부 공개는 cloudflared 터널로만 한다. 80(Nginx)은 서버 안(127.0.0.1)에만, DB·백엔드는 컨테이너끼리만 통신한다.
+# 로그는 컨테이너마다 10MB 파일 3개까지만 보관 (기본값은 무제한이라 디스크가 가득 찰 수 있음)
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:16
     restart: unless-stopped
+    logging: *default-logging
     environment:
-      POSTGRES_.DB: ${DB_NAME}
+      POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
@@ -21,6 +29,7 @@ services:
   backend:
     build: ./backend
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,6 +46,7 @@ services:
   frontend:
     build: ./frontend
     restart: unless-stopped
+    logging: *default-logging
     depends_on:
       - backend
     # 외부에는 열지 않고 서버 안에서만 확인용으로 연다 (외부 접속은 cloudflared 터널로만)
@@ -46,6 +56,7 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
+    logging: *default-logging
     # 서버가 Cloudflare로 먼저 연결을 건다 → 공유기 포트 개방 없이 외부 공개
     command: tunnel --no-autoupdate run
     environment:
