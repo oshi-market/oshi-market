@@ -12,6 +12,7 @@ desktop.ini
 .env
 .env.local
 .env.*.local
+.env.prod
 
 # 프론트엔드 (React 추가 후)
 frontend/node_modules/

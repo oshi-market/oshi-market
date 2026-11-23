@@ -1,0 +1,13 @@
+# 배포용 설정 (SPRING_PROFILES_ACTIVE=prod 일 때 application.yml 위에 덮어씀)
+# JWT 기본값 제거·actuator 제한은 #34에서 application.yml에 반영되어 여기서는 뺐다.
+
+# 로컬은 편의상 DB 비밀번호 기본값(oshimarket)을 쓰지만,
+# 공개 저장소의 기본값으로 운영 DB가 뜨지 않도록 배포에서는 환경변수로만 받는다.
+spring:
+  datasource:
+    password: ${DB_PASSWORD}
+
+# 배포 도메인에서 오는 브라우저 요청만 허용한다.
+# 터널(HTTPS) 뒤에서 백엔드는 http로 받기 때문에, 같은 주소여도 브라우저 출처(https)와 달라 CORS 검사를 거친다.
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:https://oshi.jj-labs.dev}
