@@ -81,6 +81,39 @@ nav {
   text-decoration: none;
 }
 
+/* 메뉴·버튼 글자가 좁은 화면에서 한 글자씩 세로로 꺾이지 않게 */
+.nav-menu a,
+.nav-actions a,
+.nav-actions button {
+  white-space: nowrap;
+}
+
+/* 휴대폰: 1줄 = 로고 + 검색, 2줄 = 메뉴(왼쪽) + 로그인·판매하기(오른쪽) */
+@media (max-width: 639px) {
+  nav {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    padding: 10px 16px;
+  }
+
+  .nav-discover {
+    flex: 1 1 100%;
+    gap: 12px;
+  }
+
+  .nav-search {
+    max-width: none;
+  }
+
+  .nav-menu {
+    gap: 16px;
+  }
+
+  .nav-actions {
+    margin-left: auto;
+  }
+}
+
 .account-menu {
   position: relative;
 }
