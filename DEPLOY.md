@@ -154,6 +154,7 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 - **Docker는 방화벽(ufw)을 건너뛴다.** ufw는 SSH만 열어 두었는데 `80:80`으로 띄우자 집 안 다른 기기에서 접속됐다. → `127.0.0.1:80:80`으로 묶고 외부는 터널로만.
 - **같은 주소여도 HTTPS 프록시 뒤에서는 CORS가 문제 된다.** 집 안 `http` 주소에서는 같은 출처라 드러나지 않았다.
 - **자동 점검이 다 통과해도 실제 브라우저로 확인해야 한다.** 점검 스크립트 33개가 통과했지만, 스크립트는 Origin을 보내지 않아 CORS를 잡지 못했다.
+- **기본값과 실제 값이 같으면 설정 전달 누락이 숨는다.** compose가 `CORS_ALLOWED_ORIGINS`를 백엔드에 넘기지 않았는데, 홈 서버는 도메인이 기본값과 같아 문제없이 동작했다. 도메인이 다른 EC2로 옮기면서 드러났다.
 
 ## EC2로 옮길 때
 
@@ -163,8 +164,21 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
   sudo mkswap /swapfile && sudo swapon /swapfile
   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
   ```
-- 터널을 그대로 쓰면 보안 그룹 인바운드는 **22(SSH, 내 IP만)**만 열면 된다. 80·443·5432·8080은 열지 않는다.
-- 도메인이 바뀌면 `CORS_ALLOWED_ORIGINS` 환경변수로 덮어쓴다.
+- 터널을 쓰면 보안 그룹 인바운드는 **22(SSH, 내 IP만)**만 열면 된다. 80·443·5432·8080은 열지 않는다.
+- **터널은 서버마다 새로 만든다.** 같은 토큰을 두 서버에서 쓰면 Cloudflare가 요청을 두 서버로 나눠 보내고, DB가 서버마다 따로라 데이터가 갈라진다.
+- 도메인이 바뀌면 `.env.prod`에 `CORS_ALLOWED_ORIGINS=https://새-도메인`을 적는다. 비우면 홈 서버 도메인(`https://oshi.jj-labs.dev`)이 기본값이다.
+- Ubuntu AMI의 사용자 이름은 `ubuntu`다.
+  ```bash
+  ssh -i ~/.ssh/oshi-ec2-key.pem ubuntu@<퍼블릭 IP>
+  ```
+
+### 실제로 옮겨 본 결과 (2026-11-26)
+
+- 주소: **https://oshi-ec2.jj-labs.dev** (터널 이름 `ec2`)
+- 서울 리전, Ubuntu Server 26.04 LTS, t3.small + 스왑 2GB, gp3 20GB. 빌드·실행 모두 문제없었다(백엔드 기동 약 17초).
+- 휴대폰 데이터로 회원가입 → 로그인 → 상품 등록 → 채팅까지 확인. 다른 출처의 CORS 요청은 403으로 막힌다.
+- **평소에는 인스턴스를 중지해 둔다**(켜 두면 월 약 25달러, 중지하면 디스크만 월 약 2달러). 다시 켜면 Docker·컨테이너·터널이 자동으로 올라오게 되어 있다(`docker` enabled + `restart: unless-stopped`, 홈 서버 재부팅으로 확인했고 EC2는 다음에 켤 때 확인). 바뀌는 것은 퍼블릭 IP뿐이라 SSH 접속 때만 콘솔에서 새 IP를 확인한다. 탄력적 IP는 중지 중에도 요금이 나와 쓰지 않는다.
+- 중지 중에는 이 주소가 Cloudflare 530을 돌려준다. 시연 주소(홈 서버)는 영향 없다.
 
 ## 배포 전 체크리스트
 
