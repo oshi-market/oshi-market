@@ -42,6 +42,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       CLOUDINARY_URL: ${CLOUDINARY_URL}
+      # 서버마다 도메인이 다를 때 .env.prod에서 덮어쓴다 (비우면 홈 서버 도메인)
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://oshi.jj-labs.dev}
 
   frontend:
     build: ./frontend
